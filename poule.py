@@ -1,6 +1,6 @@
-from config import WINST, GELIJK, VERLIES, POULES, get_points, get_punten_spel, ALL_TYPES
+from config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES, POULES
 from model import Games, Team
-from session import Session
+from update import get_session
 
 
 class Poule:
@@ -34,27 +34,29 @@ class Poule:
 
         self.data = {}
         self.poule_id = poule
+        session = get_session()
 
-        with Session() as session:
-            poule = (
-                session
-                .query(Games.id, Games.poule, Team.team, Games.goals)
-                .join(Team)
-                .filter(Games.poule == poule)
-                .order_by(Games.id)
-            )
+        poule = (
+            session
+            .query(Games.id, Games.poule, Team.team, Games.goals)
+            .join(Team)
+            .filter(Games.poule == poule)
+            .order_by(Games.id)
+        )
 
-            home_games = poule.filter(Games.stage == 'home').all()
-            away_games = poule.filter(Games.stage == 'away').all()
+        home_games = poule.filter(Games.stage == 'home').all()
+        away_games = poule.filter(Games.stage == 'away').all()
 
-            for home, away in zip(home_games, away_games):
-                if home.team not in self.data:
-                    self.new_team(home.team)
-                if away.team not in self.data:
-                    self.new_team(away.team)
+        for home, away in zip(home_games, away_games):
+            if home.team not in self.data:
+                self.new_team(home.team)
+            if away.team not in self.data:
+                self.new_team(away.team)
 
-                self.add_values(home.team, home.goals, away.goals)
-                self.add_values(away.team, away.goals, home.goals)
+            self.add_values(home.team, home.goals, away.goals)
+            self.add_values(away.team, away.goals, home.goals)
+
+        session.flush()
 
     def add_values(self, team, goals_home, goals_away):
         cur_points = get_points(goals_home, goals_away)
@@ -90,7 +92,14 @@ class PouleDatabase:
 
     def add(self, poule: Poule):
         self.poules.append(poule)
+        return self
+
+    def add_all(self):
+        for poule in POULES:
+            self.add(Poule(poule))
+        return self
 
     def print(self):
+        print()
         for poule in sorted(self.poules, key=lambda x: x.poule_id):
             print(poule.to_dataframe().to_markdown(), end='\n\n\n')

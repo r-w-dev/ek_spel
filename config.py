@@ -1,3 +1,5 @@
+from pathlib import Path
+
 DB_CONFIG = {
     'drivername': 'sqlite',
     'username': None,
@@ -9,7 +11,9 @@ DB_CONFIG = {
 SOURCE_FILE = 'EKspel2021.xls'
 SHEET_PROGRAMMA = 'programma + uitslag'
 
-POINTS = (60, 50, 40, 30, *range(20, 0, -1))
+USER_FOLDER = Path.cwd() / 'invullijsten'
+
+POINTS = (50, 43, 38, 33, 30, 27, *range(24, 12, -2), *range(12, 0, -1))
 
 TEAMS = (
     'België',
@@ -98,10 +102,11 @@ GELIJK = 1
 VERLIES = 0
 
 MULTIPLIER = {
-    3: 3,
-    1: 2,
-    0: 1
+    WINST: 3,
+    GELIJK: 2,
+    VERLIES: 1
 }
+
 
 def get_points(goals_home, goals_away):
     if goals_home is None or goals_away is None:

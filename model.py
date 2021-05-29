@@ -8,7 +8,7 @@ from sqlalchemy.orm import declarative_base, relationship, validates
 
 from config import DB_CONFIG, TYPES, FINALS_MAPPER
 
-engine = create_engine(URL(**DB_CONFIG), echo=False)
+engine = create_engine(URL(**DB_CONFIG), echo=True)
 
 
 @event.listens_for(engine, "connect")
@@ -19,7 +19,7 @@ def do_connect(dbapi_connection, connection_record):
 
     cursor = dbapi_connection.cursor()
     cursor.execute("PRAGMA journal_mode=WAL")
-    cursor.execute("PRAGMA foreign_keys=ON")
+    # cursor.execute("PRAGMA foreign_keys=ON")
     cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
     cursor.execute("PRAGMA synchronous=NORMAL")
     cursor.execute("PRAGMA busy_timeout=5000")
@@ -41,7 +41,8 @@ def has_table(table):
 
 
 def drop_table(table):
-    table.__table__.drop(bind=engine)
+    if has_table(table):
+        table.__table__.drop(bind=engine)
 
 
 def create_table(table):
@@ -51,6 +52,17 @@ def create_table(table):
 def recreate_table(table):
     drop_table(table)
     create_table(table)
+
+
+def create_all(drop_first=False):
+    if drop_first:
+        drop_all()
+    Base.metadata.create_all(checkfirst=True)
+
+
+def drop_all():
+    to_drop = [table for table in Base.metadata.sorted_tables if not str(table).startswith('sqlite_')]
+    Base.metadata.drop_all(tables=to_drop, checkfirst=True)
 
 
 def validate_int(value, nullable=False, gt_zero=True, key=None):
@@ -88,7 +100,7 @@ class User(Base):
     __tablename__ = 'users'
     __table_args__ = {'sqlite_autoincrement': True}
 
-    id = Column(Integer, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     naam = Column(String)
     team_naam = Column(String)
     leeftijd = Column(Integer)
@@ -100,9 +112,9 @@ class User(Base):
     betaald = Column(Boolean)
 
     def __repr__(self):
-        return f"<User(name={self.naam}, teamnaam={self.team_naam})"
+        return f"<User(id={self.id}, name={self.naam}, teamnaam={self.team_naam})"
 
-    @validates('id', 'leeftijd', 'bonusvraag_gk', 'bonusvraag_rk', 'bonusvraag_goals')
+    @validates('leeftijd', 'bonusvraag_gk', 'bonusvraag_rk', 'bonusvraag_goals')
     def validate_int(self, key, value):
         return validate_int(value, key=key)
 
@@ -112,20 +124,25 @@ class User(Base):
             raise ValueError
         return value
 
+    @validates('betaald')
+    def validate_betaald(self, key, value):
+        test = value.upper() if isinstance(value, str) else value
+        return test in {'1', 'J', 'TRUE', True, 1}
+
 
 class Team(Base):
 
     __tablename__ = 'teams'
     __table_args__ = {'sqlite_autoincrement': True}
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     team = Column(String, nullable=False, unique=True)
     punten = Column(Integer, default=0)
 
     def __repr__(self):
         return f"<Team(id={self.id}, teamnaam={self.team})"
 
-    @validates('id')
+    @validates('punten')
     def validate_int(self, key, value):
         return validate_int(value, key=key)
 
@@ -139,7 +156,7 @@ class Team(Base):
 
     @classmethod
     def clean(cls, value):
-        return ''.join(s for s in value if s in {' ', '-'} or str.isalnum(s))
+        return ''.join(s for s in value if s in {' ', '-'} or str.isalnum(s)).strip()
 
 
 class Ranking(Base):
@@ -147,14 +164,14 @@ class Ranking(Base):
 
     __tablename__ = 'ranking'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'), post_update=True)
     team_id = Column(Integer, ForeignKey('teams.id'))
     waarde = Column(Integer)
 
     user = relationship('User', back_populates='rankings')
-    team = relationship('Team', back_populates='rankings', lazy='joined', innerjoin=True)
+    team = relationship('Team', back_populates='rankings')
 
     def __repr__(self):
         return f"<Ranking(id={self.id}, user_id={self.user_id}, team_id={self.team_id}, waarde={self.waarde})"
@@ -164,9 +181,9 @@ class Ranking(Base):
         {'sqlite_autoincrement': True}
     )
 
-    @validates('id', 'user_id', 'team_id')
+    @validates('user_id', 'team_id')
     def validate_int(self, key, value):
-        return validate_int(value, key=key)
+        return validate_int(value, key=key, nullable=True)
 
 
 User.rankings = relationship('Ranking', order_by=Ranking.id, back_populates='user')
@@ -181,10 +198,10 @@ class Games(Base):
     date = Column(DateTime, nullable=False)
     type = Column(String, nullable=False)
     poule = Column(String, nullable=False)
-    stage = Column(String, nullable=False)
+    stage = Column(String, nullable=False, primary_key=True)
     stadium = Column(String, nullable=False)
 
-    team_id = Column(Integer, ForeignKey('teams.id'), primary_key=True, nullable=False)
+    team_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     goals = Column(Integer, default=None)
 
     team_name = relationship('Team', back_populates='games')
@@ -222,5 +239,4 @@ class Games(Base):
 Team.games = relationship('Games', order_by=Games.id, back_populates='team_name')
 
 
-Base.metadata.create_all(checkfirst=True)
-Base.metadata.reflect()
+create_all(drop_first=True)

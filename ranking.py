@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import desc, func
 
 from model import Team, Ranking, User
-from session import Session
+from update import get_session
 
 
 class UserRanking:
@@ -23,19 +23,17 @@ class UserRanking:
             .order_by(User.naam, desc(Ranking.waarde))
         )
 
-
     def __init__(self, user_id):
+        self.session = get_session()
         self.user_id = user_id
         self.data = {}
 
-        with Session() as session:
-            result = self.get_ranking_query(session).all()
+        result = self.get_ranking_query(self.session).all()
 
         print(pd.DataFrame(map(dict, result)).to_markdown())
 
     def totaal(self):
-        with Session() as session:
-            subqry = self.get_ranking_query(session).subquery()
-            totaal = session.query(func.sum(subqry.c.totaal)).group_by(subqry.c.naam).scalar()
+        subqry = self.get_ranking_query(self.session).subquery()
+        totaal = self.session.query(func.sum(subqry.c.totaal)).group_by(subqry.c.naam).scalar()
 
         print(f"User {self.user_id}: {totaal}")
