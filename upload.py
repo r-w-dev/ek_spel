@@ -5,8 +5,8 @@ from random import shuffle
 import pandas as pd
 
 from config import SOURCE_FILE, SHEET_PROGRAMMA, POINTS, TEAMS, USER_FOLDER
-from update import AddNewUser, AddNewGame, AddNewTeam, commit as commit_all
 from model import Team, Games, Ranking, User, recreate_table, has_table
+from update import AddNewTeams, AddNewGames, AddNewUsers
 
 
 def drop_empty(data):
@@ -23,7 +23,7 @@ def drop_col_only_containing(data, char):
 def read() -> pd.DataFrame:
     data = pd.read_excel(SOURCE_FILE, sheet_name=SHEET_PROGRAMMA, header=1, dtype=str, engine='xlrd')
     data = drop_col_only_containing(drop_empty(data), '-')
-    data.columns = ['fase', 'datum', 'tijd', 'poule', 'home_team', 'away_team', 'stadium']
+    data.columns = ['fase', 'datum', 'tijd', 'poule', 'home_team', 'away_team', 'stadium', 'home_goals', 'away_goals']
     return data
 
 
@@ -60,10 +60,6 @@ class UploadBase:
     def upload(self):
         pass
 
-    @staticmethod
-    def commit():
-        commit_all()
-
 
 class UploadTeams(UploadBase):
     base = Team
@@ -77,11 +73,7 @@ class UploadTeams(UploadBase):
         return sorted(set(self.data['home_team']) | set(self.data['away_team']))
 
     def upload(self):
-        teams = self.find_teams()
-
-        for team in teams:
-            AddNewTeam(team)
-
+        AddNewTeams(*self.find_teams()).commit()
         return self
 
 
@@ -100,11 +92,7 @@ class UploadGames(UploadBase):
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
 
     def upload(self):
-        for row_ in self.data.itertuples(index=True):
-            kwargs = row_._asdict()
-            kwargs['id'] = kwargs.pop('Index')
-            AddNewGame(**kwargs)
-
+        AddNewGames(*(row._asdict() for row in self.data.itertuples(index=True))).commit()
         return self
 
 
@@ -114,6 +102,7 @@ class UploadUsers(UploadBase):
     depends_on = [UploadTeams, UploadGames]
 
     ENGINE = 'openpyxl'
+    GLOB = '*.xlsx'
 
     def get_bonus(self, file) -> dict:
         key_map = {
@@ -155,11 +144,9 @@ class UploadUsers(UploadBase):
         return [Team.clean(val) for val in values]
 
     def read(self):
-        for file in Path(USER_FOLDER).glob('*.xlsx'):
+        for file in Path(USER_FOLDER).glob(self.GLOB):
             yield {'rankings': self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
 
     def upload(self):
-        for data in self.read():
-            AddNewUser(**data)
-
+        AddNewUsers(*self.read()).commit()
         return self

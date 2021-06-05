@@ -1,13 +1,25 @@
-from upload import UploadTeams, UploadGames, UploadUsers
-from update import UpdateScore
 from poule import PouleDatabase
+from update import UpdatePuntenSpel
+from upload import UploadTeams, UploadGames, UploadUsers
+from ranking import UserRanking
+
+
+def initialize_data():
+    UploadTeams(recreate=True).upload()
+    UploadGames(recreate=True).upload()
+    UploadUsers(recreate=True).upload()
+
+
+def get_scores():
+    pass
 
 
 if __name__ == '__main__':
-    UploadTeams(recreate=True).upload().commit()
-    UploadGames(recreate=True).upload().commit()
-    UploadUsers(recreate=True).upload().commit()
+    initialize_data()
 
-    UpdateScore(game_id=1).update(0, 3)
+    get_scores()
 
+    # UpdateScore(game_id=1).update(0, 3)
+    UpdatePuntenSpel().commit()
     PouleDatabase().add_all().print()
+    UserRanking(user_id=1).totaal()

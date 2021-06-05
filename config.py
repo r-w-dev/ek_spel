@@ -1,5 +1,7 @@
 from pathlib import Path
 
+DEBUG = False
+
 DB_CONFIG = {
     'drivername': 'sqlite',
     'username': None,

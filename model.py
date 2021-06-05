@@ -5,10 +5,9 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import declarative_base, relationship, validates
 
+from config import DB_CONFIG, TYPES, FINALS_MAPPER, DEBUG
 
-from config import DB_CONFIG, TYPES, FINALS_MAPPER
-
-engine = create_engine(URL(**DB_CONFIG), echo=True)
+engine = create_engine(URL.create(**DB_CONFIG), echo=DEBUG)
 
 
 @event.listens_for(engine, "connect")
@@ -69,9 +68,10 @@ def validate_int(value, nullable=False, gt_zero=True, key=None):
     msg = f"Key '{key}' is not an integer: {value} ({type(value)})"
     is_digit_str = isinstance(value, str) and value.isdigit()
     is_int_float = isinstance(value, float) and value.is_integer()
+    is_nan = value != value
 
-    if nullable and value is None:
-        return value
+    if nullable and (value is None or is_nan):
+        return None
     elif isinstance(value, int):
         pass
     elif is_digit_str or is_int_float:
@@ -96,7 +96,6 @@ class TableBase:
 
 
 class User(Base):
-
     __tablename__ = 'users'
     __table_args__ = {'sqlite_autoincrement': True}
 
@@ -131,12 +130,12 @@ class User(Base):
 
 
 class Team(Base):
-
     __tablename__ = 'teams'
     __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     team = Column(String, nullable=False, unique=True)
+    team_finals = Column(String, nullable=False, unique=False)
     punten = Column(Integer, default=0)
 
     def __repr__(self):
@@ -146,7 +145,7 @@ class Team(Base):
     def validate_int(self, key, value):
         return validate_int(value, key=key)
 
-    @validates('team')
+    @validates('team', 'team_finals')
     def validate_team(self, key, value):
         return self.clean(value)
 
@@ -166,7 +165,7 @@ class Ranking(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    user_id = Column(Integer, ForeignKey('users.id'), post_update=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
     team_id = Column(Integer, ForeignKey('teams.id'))
     waarde = Column(Integer)
 
@@ -191,7 +190,6 @@ Team.rankings = relationship('Ranking', order_by=Ranking.id, back_populates='tea
 
 
 class Games(Base):
-
     __tablename__ = 'games'
 
     id = Column(Integer, primary_key=True, nullable=False)
@@ -237,6 +235,5 @@ class Games(Base):
 
 
 Team.games = relationship('Games', order_by=Games.id, back_populates='team_name')
-
 
 create_all(drop_first=True)

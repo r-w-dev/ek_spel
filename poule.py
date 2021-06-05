@@ -1,6 +1,6 @@
-from config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES, POULES
-from model import Games, Team
-from update import get_session
+from config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES
+from model import Team
+from update import Query
 
 
 class Poule:
@@ -22,6 +22,10 @@ class Poule:
     def new_team(self, team):
         self.data[team] = {key: 0 for key in self.COLUMNS}
 
+    @property
+    def empty(self):
+        return not any(key for key, values in self.data.items() if values[self.PLAYED] > 0)
+
     def __getitem__(self, item):
         return self.data.get(item, None)
 
@@ -34,18 +38,9 @@ class Poule:
 
         self.data = {}
         self.poule_id = poule
-        session = get_session()
 
-        poule = (
-            session
-            .query(Games.id, Games.poule, Team.team, Games.goals)
-            .join(Team)
-            .filter(Games.poule == poule)
-            .order_by(Games.id)
-        )
-
-        home_games = poule.filter(Games.stage == 'home').all()
-        away_games = poule.filter(Games.stage == 'away').all()
+        home_games = Query.games_from_poule(self.poule_id, stage='home')
+        away_games = Query.games_from_poule(self.poule_id, stage='away')
 
         for home, away in zip(home_games, away_games):
             if home.team not in self.data:
@@ -56,33 +51,40 @@ class Poule:
             self.add_values(home.team, home.goals, away.goals)
             self.add_values(away.team, away.goals, home.goals)
 
-        session.flush()
-
-    def add_values(self, team, goals_home, goals_away):
-        cur_points = get_points(goals_home, goals_away)
+    def add_values(self, team, goals_made, goals_had):
+        cur_points = get_points(goals_made, goals_had)
         cur_team = self.data[team]
 
-        cur_team[self.PLAYED] += 1 if goals_home is not None else 0
+        cur_team[self.PLAYED] += 1 if goals_made is not None else 0
         cur_team[self.POINTS] += cur_points or 0
         cur_team[self.WON] += cur_points == WINST
         cur_team[self.DRAW] += cur_points == GELIJK
         cur_team[self.LOST] += cur_points == VERLIES
-        cur_team[self.GOALS_MADE] += goals_home or 0
-        cur_team[self.GOALS_HAD] += goals_away or 0
+        cur_team[self.GOALS_MADE] += goals_made or 0
+        cur_team[self.GOALS_HAD] += goals_had or 0
         cur_team[self.GOALS_SALDO] = self.saldo(team)
-        cur_team[self.GAME_POINTS] += get_punten_spel(cur_points, goals_home)
+        cur_team[self.GAME_POINTS] += get_punten_spel(cur_points, goals_made)
 
     def saldo(self, team):
         return self.data[team][self.GOALS_MADE] - self.data[team][self.GOALS_HAD]
 
     def to_dataframe(self):
         from pandas import DataFrame
-        return (
+
+        data = {Team.get_final_team(key): val for key, val in self.data.items()}
+
+        df: DataFrame = (
             DataFrame
-            .from_dict(self.data, columns=self.COLUMNS, orient='index')
+            .from_dict(data, columns=self.COLUMNS, orient='index')
             .rename_axis(f'Groep {self.poule_id}')
-            .sort_values([self.POINTS, self.GOALS_SALDO], ascending=False)
         )
+
+        # sorting not correct: needs 'onderling resultaat'
+        return df.sort_index(ascending=True) if self.empty else \
+            df.sort_values(
+                by=[self.POINTS, self.GOALS_SALDO, self.PLAYED, self.GAME_POINTS],
+                ascending=[False, False, True, False]
+            )
 
 
 class PouleDatabase:
@@ -95,11 +97,11 @@ class PouleDatabase:
         return self
 
     def add_all(self):
-        for poule in POULES:
+        for poule in ALL_TYPES:
             self.add(Poule(poule))
         return self
 
     def print(self):
         print()
-        for poule in sorted(self.poules, key=lambda x: x.poule_id):
+        for poule in self.poules:
             print(poule.to_dataframe().to_markdown(), end='\n\n\n')

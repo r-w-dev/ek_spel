@@ -1,21 +1,25 @@
-from config import POINTS, ALL_TYPES
-from model import Games, User, Ranking, Team, engine
 from sqlalchemy.orm import Session
 
+from config import POINTS, ALL_TYPES
+from model import Games, User, Ranking, Team, engine
 
 _session = Session(bind=engine)
 
 
-def commit():
-    _session.commit()
-    _session.close()
+class Sessie:
+    sessie = _session
+
+    def commit(self):
+        _session.commit()
+        _session.close()
+        return self
+
+    def flush(self):
+        _session.flush()
+        return self
 
 
-def get_session():
-    return _session
-
-
-class UpdatePuntenSpel:
+class UpdatePuntenSpel(Sessie):
 
     def __init__(self):
         from poule import Poule
@@ -31,54 +35,53 @@ class UpdatePuntenSpel:
                     teams[team] += poule[team][Poule.GAME_POINTS]
 
         for team, punten in teams.items():
-            _session.merge(Team(id=_session.query(Team.id).filter(Team.team == team).scalar(), punten=punten))
-
-        _session.commit()
+            self.sessie.merge(Team(id=Query.team_id_by_name(team), punten=punten))
 
 
-class UpdateScore:
+class UpdateScore(Sessie):
 
-    def __init__(self, game_id):
+    def __init__(self, game_id: int):
         self.game_id = game_id
 
-    def update(self, goals_home, goals_away):
-        _session.merge(Games(id=self.game_id, stage='home', goals=goals_home))
-        _session.merge(Games(id=self.game_id, stage='away', goals=goals_away))
-        _session.flush()
+    def update(self, goals_home: int, goals_away: int):
+        self.sessie.merge(Games(id=self.game_id, stage='home', goals=goals_home))
+        self.sessie.merge(Games(id=self.game_id, stage='away', goals=goals_away))
+        self.flush()
 
         UpdatePuntenSpel()
 
     def reset(self):
-        _session.merge(Games(id=self.game_id, goals_home=None, goals_away=None))
-        _session.flush()
+        self.sessie.merge(Games(id=self.game_id, goals_home=None, goals_away=None))
+        self.flush()
 
 
-class AddNewUser:
+class AddNewUsers(Sessie):
 
-    def __init__(self, *, naam, team_naam, leeftijd, email, topscoorder, bonusvraag_gk, bonusvraag_rk, bonusvraag_goals,
-                 betaald, rankings):
-        user = User(
-            naam=naam,
-            team_naam=team_naam,
-            leeftijd=leeftijd,
-            email=email,
-            topscoorder=topscoorder,
-            bonusvraag_gk=bonusvraag_gk,
-            bonusvraag_rk=bonusvraag_rk,
-            bonusvraag_goals=bonusvraag_goals,
-            betaald=betaald,
-            rankings=[
-                Ranking(team=_session.query(Team).filter_by(team=team).first(), waarde=points)
-                for team, points in zip(rankings, POINTS)
-            ]
+    def __init__(self, *users: dict):
+        self.sessie.add_all(
+            User(
+                naam=user['naam'],
+                team_naam=user['team_naam'],
+                leeftijd=user['leeftijd'],
+                email=user['email'],
+                topscoorder=user['topscoorder'],
+                bonusvraag_gk=user['bonusvraag_gk'],
+                bonusvraag_rk=user['bonusvraag_rk'],
+                bonusvraag_goals=user['bonusvraag_goals'],
+                betaald=user['betaald'],
+                rankings=[
+                    Ranking(team=Query.team_obj_by_name(team), waarde=points)
+                    for team, points in zip(user['rankings'], POINTS)
+                ]
+            ) for user in users
         )
-        _session.add(user)
 
 
-class AddNewGame:
+class AddNewGames(Sessie):
 
-    def create_game(self, *, id, date, stadium, poule, setting, **kwargs):
-        team = kwargs[f'{setting}_team']
+    def create_game(self, *, id, date, stadium, poule, setting, **kwargs) -> Games:
+        team = kwargs.get(f'{setting}_team')
+        goals = kwargs.get(f'{setting}_goals')
 
         return Games(
             id=id,
@@ -87,26 +90,47 @@ class AddNewGame:
             poule=poule,
             type=Games.get_type(poule),
             stage=setting,
-            team_id=(
-                _session
-                .query(Team.id)
-                .filter(Team.team == Team.clean(team))
-                .scalar()
-            )
+            team_id=Query.team_id_by_name(team),
+            goals=goals
         )
 
-    def __init__(self, id, date, stadium, poule, **kwargs):
-        kwargs |= {
-            'id': id,
-            'date': date,
-            'poule': poule,
-            'stadium': stadium
-        }
-        _session.add(self.create_game(**kwargs | {'setting': 'home'}))
-        _session.add(self.create_game(**kwargs | {'setting': 'away'}))
+    def __init__(self, *games: dict):
+        for game in games:
+            assert isinstance(game, dict)
+            game['id'] = game.pop('Index')
+
+            self.sessie.add(self.create_game(**game | {'setting': 'home'}))
+            self.sessie.add(self.create_game(**game | {'setting': 'away'}))
 
 
-class AddNewTeam:
+class AddNewTeams(Sessie):
 
-    def __init__(self, team):
-        _session.add(Team(team=team))
+    def __init__(self, *teams: str):
+        self.sessie.add_all(Team(team=team, team_finals=Team.get_final_team(team)) for team in teams)
+
+
+class Query(Sessie):
+
+    @classmethod
+    def games_from_poule(cls, poule: str, stage: str = None) -> list:
+        filter_by = [Games.poule == poule]
+
+        if stage:
+            filter_by += [Games.stage == stage]
+
+        return (
+            cls.sessie
+            .query(Games.id, Games.poule, Team.team, Games.goals)
+            .join(Team)
+            .filter(*filter_by)
+            .order_by(Games.id)
+            .all()
+        )
+
+    @classmethod
+    def team_id_by_name(cls, team: str) -> int:
+        return cls.sessie.query(Team.id).filter(Team.team == Team.clean(team)).scalar()
+
+    @classmethod
+    def team_obj_by_name(cls, team: str) -> Team:
+        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).first()
