@@ -1,6 +1,7 @@
 import pandas as pd
 from sqlalchemy import desc, func
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import label
 
 from model import Team, Ranking, User
 from update import Sessie
@@ -35,12 +36,12 @@ class UserRanking(Sessie):
         return (
             self.sessie
             .query(
-                User.naam.label(self.NAAM_USER),
-                User.team_naam.label(self.TEAMNAAM_USER),
-                team_all_points.c.team_finals.label(self.TEAM),
-                punten_per_land.label(self.PUNTEN_TEAM),
-                Ranking.waarde.label(self.WAARDE),
-                (Ranking.waarde * punten_per_land).label(self.TOTAAL)
+                label(self.NAAM_USER, User.naam),
+                label(self.TEAMNAAM_USER, User.team_naam),
+                label(self.TEAM, team_all_points.c.team_finals),
+                label(self.PUNTEN_TEAM, punten_per_land),
+                label(self.WAARDE, Ranking.waarde),
+                label(self.TOTAAL, Ranking.waarde * punten_per_land)
             )
             .join(Ranking, User.id == Ranking.user_id)
             .join(team_all_points, team_all_points.c.id == Ranking.team_id)
