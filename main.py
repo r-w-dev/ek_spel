@@ -1,8 +1,9 @@
 from poule import PouleDatabase
-from update import UpdatePuntenSpel
+from update import UpdatePuntenSpel, UpdateUserPoints
 from upload import UploadTeams, UploadGames, UploadUsers
-from ranking import UserRanking
-
+from ranking import TopUsers
+from dump import Dump
+from model import User
 
 def initialize_data():
     UploadTeams(recreate=True).upload()
@@ -10,17 +11,15 @@ def initialize_data():
     UploadUsers(recreate=True).upload()
 
 
-def get_scores():
-    pass
-
-
 if __name__ == '__main__':
     initialize_data()
 
-    get_scores()
-
-    # UpdateScore(game_id=1).update(0, 3)
     UpdatePuntenSpel().commit()
+
     PouleDatabase().add_all().print()
-    UserRanking(user_id=1).totaal()
-    # dumpUsers()
+
+    UpdateUserPoints().commit()
+
+    TopUsers().print()
+
+    Dump(User).to_excel()

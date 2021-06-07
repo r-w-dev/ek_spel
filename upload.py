@@ -10,7 +10,7 @@ from update import AddNewTeams, AddNewGames, AddNewUsers
 
 
 def drop_empty(data):
-    return data.dropna(how='all', axis=0).dropna(how='all', axis=1)
+    return data.dropna(how='all', axis=0)
 
 
 def drop_col_only_containing(data, char):
@@ -21,7 +21,7 @@ def drop_col_only_containing(data, char):
 
 
 def read() -> pd.DataFrame:
-    data = pd.read_excel(SOURCE_FILE, sheet_name=SHEET_PROGRAMMA, header=1, dtype=str, engine='xlrd')
+    data = pd.read_excel(SOURCE_FILE, sheet_name=SHEET_PROGRAMMA, header=1, dtype=str, usecols='A:K', engine='xlrd')
     data = drop_col_only_containing(drop_empty(data), '-')
     data.columns = ['fase', 'datum', 'tijd', 'poule', 'home_team', 'away_team', 'stadium', 'home_goals', 'away_goals']
     return data
@@ -117,7 +117,8 @@ class UploadUsers(UploadBase):
             .set_index('Bonusvragen')
             .rename(index=key_map)
             .squeeze()
-            .map(str.strip)
+            .map(str.strip, na_action='ignore')
+            .fillna('')
             .to_dict()
         )
 
@@ -131,11 +132,13 @@ class UploadUsers(UploadBase):
         }
 
         return (
-            pd.read_excel(file, usecols='I:J', skiprows=1, index_col=0, engine=self.ENGINE, dtype=str)
+            pd.read_excel(file, usecols='I:J', skiprows=1, engine=self.ENGINE, dtype=str)
             .dropna(axis=0, how='all')
+            .set_index('Gebruiker')
             .squeeze()
-            .map(str.strip)
+            .map(str.strip, na_action='ignore')
             .rename(index=key_map)
+            .fillna('')
             .to_dict()
         )
 

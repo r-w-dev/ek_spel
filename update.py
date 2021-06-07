@@ -1,3 +1,6 @@
+import json
+import sys
+
 from sqlalchemy.orm import Session
 
 from config import POINTS, ALL_TYPES
@@ -38,6 +41,15 @@ class UpdatePuntenSpel(Sessie):
             self.sessie.merge(Team(id=Query.team_id_by_name(team), punten=punten))
 
 
+class UpdateUserPoints(Sessie):
+
+    def __init__(self):
+        from ranking import UserRanking
+
+        for user in self.sessie.query(User):
+            UserRanking(user.id).totaal()
+
+
 class UpdateScore(Sessie):
 
     def __init__(self, game_id: int):
@@ -57,17 +69,27 @@ class UpdateScore(Sessie):
 
 class AddNewUsers(Sessie):
 
+    def field_check(self, data, field, required=False):
+        if field not in data or not data.get(field):
+            if required:
+                print(f'WARNING: Required field: `{field}` not in data or empty for user:')
+                print(json.dumps(data, sort_keys=False, indent=2))
+                sys.exit(1)
+            return
+        else:
+            return data[field]
+
     def __init__(self, *users: dict):
         self.sessie.add_all(
             User(
-                naam=user['naam'],
-                team_naam=user['team_naam'],
-                leeftijd=user['leeftijd'],
-                email=user['email'],
-                topscoorder=user['topscoorder'],
-                bonusvraag_gk=user['bonusvraag_gk'],
-                bonusvraag_rk=user['bonusvraag_rk'],
-                bonusvraag_goals=user['bonusvraag_goals'],
+                naam=self.field_check(user, 'naam', required=True),
+                team_naam=self.field_check(user, 'team_naam'),
+                leeftijd=self.field_check(user, 'leeftijd'),
+                email=self.field_check(user, 'email'),
+                topscoorder=self.field_check(user, 'topscoorder', required=True),
+                bonusvraag_gk=self.field_check(user, 'bonusvraag_gk', required=True),
+                bonusvraag_rk=self.field_check(user, 'bonusvraag_rk', required=True),
+                bonusvraag_goals=self.field_check(user, 'bonusvraag_goals', required=True),
                 betaald=user['betaald'],
                 rankings=[
                     Ranking(team=Query.team_obj_by_name(team), waarde=points)

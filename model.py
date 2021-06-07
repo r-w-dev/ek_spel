@@ -108,8 +108,8 @@ class User(Base):
     bonusvraag_gk = Column(Integer)
     bonusvraag_rk = Column(Integer)
     bonusvraag_goals = Column(Integer)
-    betaald = Column(Boolean)
-    punten = Column(Integer)
+    betaald = Column(Boolean, default=False)
+    punten = Column(Integer, default=0)
 
     def __repr__(self):
         return f"<User(id={self.id}, name={self.naam}, teamnaam={self.team_naam})"

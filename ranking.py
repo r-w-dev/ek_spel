@@ -7,6 +7,10 @@ from model import Team, Ranking, User
 from update import Sessie
 
 
+def to_dataframe(query):
+    return pd.DataFrame(map(dict, query), index=range(1, len(query) + 1))
+
+
 class UserRanking(Sessie):
 
     TEAM = 'Team'
@@ -49,22 +53,44 @@ class UserRanking(Sessie):
             .order_by(User.naam, desc(Ranking.waarde))
         )
 
-    def __init__(self, user_id):
+    def __init__(self, user_id, print_=False):
         self.user_id = user_id
 
-        result = self.get_ranking_query().all()
-        df = pd.DataFrame(map(dict, result), index=range(1, len(result)+1))
-
-        print(df.to_markdown())
+        if print_:
+            result = self.get_ranking_query().all()
+            df = pd.DataFrame(map(dict, result), index=range(1, len(result) + 1))
+            print(df.to_markdown())
 
     def totaal(self):
         subqry = self.get_ranking_query().subquery()
         col_totaal = getattr(subqry.c, self.TOTAAL)
         col_naam = getattr(subqry.c, self.NAAM_USER)
 
-        totaal = self.sessie.query(func.sum(col_totaal)).group_by(col_naam).scalar()
+        self.sessie.merge(
+            User(
+                id=self.user_id,
+                punten=self.sessie.query(func.sum(col_totaal)).group_by(col_naam).scalar()
+            )
+        )
 
-        self.sessie.merge(User(id=self.user_id, punten=totaal))
-        self.sessie.commit()
 
-        print(f"\nUser {self.user_id}: {totaal} punt(en)")
+class TopUsers(Sessie):
+
+    def __init__(self, top_n=10):
+        self.data = to_dataframe(
+            self.sessie.query(
+                User.id,
+                User.naam,
+                User.team_naam,
+                User.topscoorder,
+                User.bonusvraag_gk,
+                User.bonusvraag_rk,
+                User.bonusvraag_goals,
+                User.punten
+            ).order_by(desc(User.punten))
+            .limit(top_n)
+            .all()
+        ).to_markdown(index=False)
+
+    def print(self):
+        print(self.data)
