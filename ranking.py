@@ -63,4 +63,8 @@ class UserRanking(Sessie):
         col_naam = getattr(subqry.c, self.NAAM_USER)
 
         totaal = self.sessie.query(func.sum(col_totaal)).group_by(col_naam).scalar()
+
+        self.sessie.merge(User(id=self.user_id, punten=totaal))
+        self.sessie.commit()
+
         print(f"\nUser {self.user_id}: {totaal} punt(en)")

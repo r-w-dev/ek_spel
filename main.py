@@ -23,3 +23,4 @@ if __name__ == '__main__':
     UpdatePuntenSpel().commit()
     PouleDatabase().add_all().print()
     UserRanking(user_id=1).totaal()
+    # dumpUsers()
