@@ -5,8 +5,9 @@ from random import shuffle
 import pandas as pd
 
 from config import SOURCE_FILE, SHEET_PROGRAMMA, POINTS, TEAMS, USER_FOLDER
-from model import Team, Games, Ranking, User, recreate_table, has_table
+from flask_model import Team, Games, Ranking, User
 from update import AddNewTeams, AddNewGames, AddNewUsers
+from session import has_table, recreate_table
 
 
 def drop_empty(data):
@@ -21,7 +22,15 @@ def drop_col_only_containing(data, char):
 
 
 def read() -> pd.DataFrame:
-    data = pd.read_excel(SOURCE_FILE, sheet_name=SHEET_PROGRAMMA, header=1, dtype=str, usecols='A:K', engine='xlrd')
+    print("Reading SOURCE_FILE:", SOURCE_FILE)
+    data = pd.read_excel(
+        SOURCE_FILE,
+        SHEET_PROGRAMMA,
+        header=1,
+        dtype=str,
+        usecols="A:K",
+        engine="xlrd" if Path(SOURCE_FILE).suffix == ".xls" else "openpyxl"
+    )
     data = drop_col_only_containing(drop_empty(data), '-')
     data.columns = ['fase', 'datum', 'tijd', 'poule', 'home_team', 'away_team', 'stadium', 'home_goals', 'away_goals']
     return data

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 DEBUG = False
@@ -10,10 +11,11 @@ DB_CONFIG = {
     'port': None,
     'database': 'data.sqlite'
 }
-SOURCE_FILE = 'EKspel2021.xls'
+PROJECT_DIR = os.environ.get("PROJECT_DIR", "")
+SOURCE_FILE = Path(PROJECT_DIR, 'EKspel2021.xls').expanduser()
 SHEET_PROGRAMMA = 'programma + uitslag'
 
-USER_FOLDER = Path.cwd() / 'invullijsten'
+USER_FOLDER = Path(PROJECT_DIR, 'invullijsten').expanduser()
 
 POINTS = (50, 43, 38, 33, 30, 27, *range(24, 12, -2), *range(12, 0, -1))
 

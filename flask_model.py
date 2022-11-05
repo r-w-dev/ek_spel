@@ -1,43 +1,13 @@
-from sqlalchemy import Integer, Column, String, Boolean, ForeignKey, DateTime, UniqueConstraint, \
-    Table
+from sqlalchemy import Integer, Column, String, Boolean, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy.orm import relationship, validates
 
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import declarative_base, relationship, validates
-from session import engine
 from config import TYPES, FINALS_MAPPER
+from flask_sqlalchemy import SQLAlchemy
 
 
-# define base
-Base = declarative_base(bind=engine)
+db = SQLAlchemy()
 
-
-def has_table(table):
-    return table.__table__.exists(bind=engine)
-
-
-def drop_table(table):
-    if has_table(table):
-        table.__table__.drop(bind=engine)
-
-
-def create_table(table):
-    table.__table__.create(bind=engine)
-
-
-def recreate_table(table):
-    drop_table(table)
-    create_table(table)
-
-
-def create_all(drop_first=False):
-    if drop_first:
-        drop_all()
-    Base.metadata.create_all(checkfirst=True)
-
-
-def drop_all():
-    to_drop = [table for table in Base.metadata.sorted_tables if not str(table).startswith('sqlite_')]
-    Base.metadata.drop_all(tables=to_drop, checkfirst=True)
+_STR_SIZE = 256
 
 
 def validate_int(value, nullable=False, gt_zero=True, key=None):
@@ -61,26 +31,15 @@ def validate_int(value, nullable=False, gt_zero=True, key=None):
     return value
 
 
-class TableBase:
-
-    def __tablename__(cls):
-        pass
-
-    @declared_attr
-    def __table__(cls):
-        return Table(cls.__tablename__, Base.metadata, autoload=True, autoload_with=engine)
-
-
-class User(Base):
+class User(db.Model):
     __tablename__ = 'users'
-    __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    naam = Column(String)
-    team_naam = Column(String)
+    naam = Column(String(_STR_SIZE))
+    team_naam = Column(String(_STR_SIZE))
     leeftijd = Column(Integer)
-    email = Column(String)
-    topscoorder = Column(String)
+    email = Column(String(_STR_SIZE))
+    topscoorder = Column(String(_STR_SIZE))
     bonusvraag_gk = Column(Integer)
     bonusvraag_rk = Column(Integer)
     bonusvraag_goals = Column(Integer)
@@ -106,13 +65,12 @@ class User(Base):
         return test in {'1', 'J', 'TRUE', True, 1}
 
 
-class Team(Base):
+class Team(db.Model):
     __tablename__ = 'teams'
-    __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    team = Column(String, nullable=False, unique=True)
-    team_finals = Column(String, nullable=False, unique=False)
+    team = Column(String(_STR_SIZE), nullable=False, unique=True)
+    team_finals = Column(String(_STR_SIZE), nullable=False, unique=False)
     punten = Column(Integer, default=0)
 
     def __repr__(self):
@@ -135,7 +93,7 @@ class Team(Base):
         return ''.join(s for s in value if s in {' ', '-'} or str.isalnum(s)).strip()
 
 
-class Ranking(Base):
+class Ranking(db.Model):
     """Een user geeft een lijst van landen een bepaalde waarde."""
 
     __tablename__ = 'ranking'
@@ -154,7 +112,6 @@ class Ranking(Base):
 
     __table_args__ = (
         UniqueConstraint(user_id, team_id),
-        {'sqlite_autoincrement': True}
     )
 
     @validates('user_id', 'team_id')
@@ -166,15 +123,15 @@ User.rankings = relationship('Ranking', order_by=Ranking.id, back_populates='use
 Team.rankings = relationship('Ranking', order_by=Ranking.id, back_populates='team')
 
 
-class Games(Base):
+class Games(db.Model):
     __tablename__ = 'games'
 
     id = Column(Integer, primary_key=True, nullable=False)
     date = Column(DateTime, nullable=False)
-    type = Column(String, nullable=False)
-    poule = Column(String, nullable=False)
-    stage = Column(String, nullable=False, primary_key=True)
-    stadium = Column(String, nullable=False)
+    type = Column(String(_STR_SIZE), nullable=False)
+    poule = Column(String(_STR_SIZE), nullable=False)
+    stage = Column(String(_STR_SIZE), nullable=False, primary_key=True)
+    stadium = Column(String(_STR_SIZE), nullable=False)
 
     team_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     goals = Column(Integer, default=None)

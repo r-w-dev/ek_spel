@@ -1,25 +1,9 @@
 import json
 import sys
 
-from sqlalchemy.orm import Session
-
 from config import POINTS, ALL_TYPES
-from model import Games, User, Ranking, Team, engine
-
-_session = Session(bind=engine)
-
-
-class Sessie:
-    sessie = _session
-
-    def commit(self):
-        _session.commit()
-        _session.close()
-        return self
-
-    def flush(self):
-        _session.flush()
-        return self
+from flask_model import Games, User, Ranking, Team
+from session import Sessie
 
 
 class UpdatePuntenSpel(Sessie):

@@ -3,7 +3,8 @@ from update import UpdatePuntenSpel, UpdateUserPoints
 from upload import UploadTeams, UploadGames, UploadUsers
 from ranking import TopUsers
 from dump import Dump
-from model import User
+from model import User, create_all
+
 
 def initialize_data():
     UploadTeams(recreate=True).upload()
@@ -12,6 +13,8 @@ def initialize_data():
 
 
 if __name__ == '__main__':
+    create_all(drop_first=False)
+
     initialize_data()
 
     UpdatePuntenSpel().commit()
