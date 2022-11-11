@@ -1,15 +1,32 @@
+import datetime
 import json
-import sys
+from typing import Iterable
 
-from config import POINTS, ALL_TYPES
-from flask_model import Games, User, Ranking, Team
-from session import Sessie
+from sqlalchemy.orm import Session
+
+from wkspel.config import POINTS, ALL_TYPES
+from wkspel.model import Games, User, Ranking, Team, engine
+
+_session = Session(bind=engine)
+
+
+class Sessie:
+    sessie = _session
+
+    def commit(self):
+        _session.commit()
+        _session.close()
+        return self
+
+    def flush(self):
+        _session.flush()
+        return self
 
 
 class UpdatePuntenSpel(Sessie):
 
     def __init__(self):
-        from poule import Poule
+        from wkspel.poule import Poule
         teams = {}
 
         for typ in ALL_TYPES:
@@ -22,46 +39,52 @@ class UpdatePuntenSpel(Sessie):
                     teams[team] += poule[team][Poule.GAME_POINTS]
 
         for team, punten in teams.items():
+            print(f"Updating team '{team}' to '{punten}' points")
             self.sessie.merge(Team(id=Query.team_id_by_name(team), punten=punten))
 
 
 class UpdateUserPoints(Sessie):
 
     def __init__(self):
-        from ranking import UserRanking
+        from wkspel.ranking import UserRanking
 
         for user in self.sessie.query(User):
-            UserRanking(user.id).totaal()
+            UserRanking(user.id).update_totaal()
 
 
-class UpdateScore(Sessie):
+class UpdateScores(Sessie):
 
-    def __init__(self, game_id: int):
-        self.game_id = game_id
+    def __init__(self, scores: Iterable):
+        for score in scores:
+            games = Query.game_id_by_poule_team(score.poule, score.date, score.stadium)
+            assert len(games) == 2, "Should have home and away game"
 
-    def update(self, goals_home: int, goals_away: int):
-        self.sessie.merge(Games(id=self.game_id, stage='home', goals=goals_home))
-        self.sessie.merge(Games(id=self.game_id, stage='away', goals=goals_away))
-        self.flush()
+            for game in games:
+                if game.stage == "home":
+                    game.goals = score.home_goals
+                elif game.stage == "away":
+                    game.goals = score.away_goals
+                else:
+                    raise ValueError
 
-        UpdatePuntenSpel()
+                self.sessie.merge(game)
 
     def reset(self):
-        self.sessie.merge(Games(id=self.game_id, goals_home=None, goals_away=None))
+        self.sessie.merge(Games(id=self.game_id, goals=None))
         self.flush()
 
 
 class AddNewUsers(Sessie):
 
-    def field_check(self, data, field, required=False):
-        if field not in data or not data.get(field):
-            if required:
-                print(f'WARNING: Required field: `{field}` not in data or empty for user:')
-                print(json.dumps(data, sort_keys=False, indent=2))
-                sys.exit(1)
-            return
-        else:
-            return data[field]
+    @staticmethod
+    def field_check(data, field, required=False):
+        value = data.get(field)
+
+        if not value and required:
+            print(json.dumps(data, sort_keys=False, indent=2))
+            raise ValueError(f'WARNING: Required field: `{field}` not in data or empty for user:')
+
+        return value
 
     def __init__(self, *users: dict):
         self.sessie.add_all(
@@ -140,3 +163,16 @@ class Query(Sessie):
     @classmethod
     def team_obj_by_name(cls, team: str) -> Team:
         return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).first()
+
+    @classmethod
+    def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[Games]:
+        return (
+            cls.sessie
+            .query(Games)
+            .filter(
+                Games.date == date,
+                Games.poule == poule,
+                Games.stadium == stadium
+            )
+            .all()
+        )

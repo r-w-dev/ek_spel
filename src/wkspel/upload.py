@@ -4,36 +4,10 @@ from random import shuffle
 
 import pandas as pd
 
-from config import SOURCE_FILE, SHEET_PROGRAMMA, POINTS, TEAMS, USER_FOLDER
-from flask_model import Team, Games, Ranking, User
-from update import AddNewTeams, AddNewGames, AddNewUsers
-from session import has_table, recreate_table
-
-
-def drop_empty(data):
-    return data.dropna(how='all', axis=0)
-
-
-def drop_col_only_containing(data, char):
-    for col in data.columns:
-        if data[col].eq(char).all():
-            del data[col]
-    return data
-
-
-def read() -> pd.DataFrame:
-    print("Reading SOURCE_FILE:", SOURCE_FILE)
-    data = pd.read_excel(
-        SOURCE_FILE,
-        SHEET_PROGRAMMA,
-        header=1,
-        dtype=str,
-        usecols="A:K",
-        engine="xlrd" if Path(SOURCE_FILE).suffix == ".xls" else "openpyxl"
-    )
-    data = drop_col_only_containing(drop_empty(data), '-')
-    data.columns = ['fase', 'datum', 'tijd', 'poule', 'home_team', 'away_team', 'stadium', 'home_goals', 'away_goals']
-    return data
+from wkspel.config import POINTS, TEAMS
+from wkspel.excel import ExcelParser
+from wkspel.model import Team, Games, Ranking, User, recreate_table, has_table
+from wkspel.update import AddNewTeams, AddNewGames, AddNewUsers, UpdateScores
 
 
 def generate_ranking():
@@ -65,18 +39,17 @@ class UploadBase:
         if recreate:
             recreate_table(self.base)
 
+        assert has_table(self.base), f"Table '{self.base.__table__}' not present"
+        self.data = None
+
     @abstractmethod
     def upload(self):
-        pass
+        raise NotImplementedError
 
 
 class UploadTeams(UploadBase):
     base = Team
     depends_on = []
-
-    def __init__(self, recreate: bool = False):
-        super().__init__(recreate)
-        self.data = read()
 
     def find_teams(self):
         return sorted(set(self.data['home_team']) | set(self.data['away_team']))
@@ -85,23 +58,36 @@ class UploadTeams(UploadBase):
         AddNewTeams(*self.find_teams()).commit()
         return self
 
+    def read(self, filepath: str):
+        self.data = ExcelParser.read(filepath)
+        print(filepath)
+        print(self.data.info())
+        return self
+
 
 class UploadGames(UploadBase):
     depends_on = [UploadTeams]
     base = Games
 
-    def __init__(self, recreate: bool = False):
-        super().__init__(recreate)
-        self.data = read()
-        self._add_datum_tijd()
-
     def _add_datum_tijd(self):
         df = self.data
-        df['date'] = df['datum'].str.rstrip('00:00:00') + df['tijd']
+        df['date'] = df['datum'].str.removesuffix('00:00:00') + df['tijd'].str.removeprefix("1900-01-01 ")
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
 
     def upload(self):
+        self._add_datum_tijd()
         AddNewGames(*(row._asdict() for row in self.data.itertuples(index=True))).commit()
+        return self
+
+    def upload_scores(self):
+        self._add_datum_tijd()
+        iterator = self.data[["poule", "date", "stadium", "home_goals", "away_goals"]].itertuples()
+        UpdateScores(iterator).commit()
+
+    def read(self, filepath: str):
+        self.data = ExcelParser.read(filepath)
+        print(filepath)
+        print(self.data.info())
         return self
 
 
@@ -121,7 +107,7 @@ class UploadUsers(UploadBase):
             'Topscoorder EK2021': 'topscoorder'
         }
         return (
-            pd.read_excel(file, usecols='F:G', skiprows=1, engine=self.ENGINE, dtype=str)
+            pd.read_excel(file, usecols='F:G', skiprows=1, engine="openpyxl", dtype=str)
             .dropna(axis=0, how='all')
             .set_index('Bonusvragen')
             .rename(index=key_map)
@@ -141,7 +127,7 @@ class UploadUsers(UploadBase):
         }
 
         return (
-            pd.read_excel(file, usecols='I:J', skiprows=1, engine=self.ENGINE, dtype=str)
+            pd.read_excel(file, usecols='I:J', skiprows=1, engine="openpyxl", dtype=str)
             .dropna(axis=0, how='all')
             .set_index('Gebruiker')
             .squeeze()
@@ -152,13 +138,22 @@ class UploadUsers(UploadBase):
         )
 
     def get_ranking(self, file) -> list:
-        values = pd.read_excel(file, skiprows=1, usecols='C', squeeze=True, engine=self.ENGINE, dtype=str).to_list()
+        values = pd.read_excel(
+            file,
+            skiprows=1,
+            usecols='C',
+            engine="openpyxl",
+            dtype=str
+        ).squeeze("columns").to_list()
         return [Team.clean(val) for val in values]
 
-    def read(self):
-        for file in Path(USER_FOLDER).glob(self.GLOB):
-            yield {'rankings': self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
+    def read(self, path: str):
+        self.data = [
+            {'rankings': self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
+            for file in Path(path).glob(self.GLOB)
+        ]
+        return self
 
     def upload(self):
-        AddNewUsers(*self.read()).commit()
+        AddNewUsers(*self.data).commit()
         return self

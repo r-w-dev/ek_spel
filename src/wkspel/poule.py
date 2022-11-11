@@ -1,8 +1,6 @@
-import pandas as pd
-
-from config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES
-from flask_model import Team
-from update import Query
+from wkspel.config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES
+from wkspel.model import Team
+from wkspel.update import Query
 
 
 class Poule:
@@ -70,7 +68,7 @@ class Poule:
     def saldo(self, team):
         return self.data[team][self.GOALS_MADE] - self.data[team][self.GOALS_HAD]
 
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_dataframe(self):
         from pandas import DataFrame
 
         data = {Team.get_final_team(key): val for key, val in self.data.items()}
@@ -107,6 +105,3 @@ class PouleDatabase:
         print()
         for poule in self.poules:
             print(poule.to_dataframe().to_markdown(), end='\n\n\n')
-
-    def to_html(self, **kwargs):
-        return "<br /></br />".join(poule.to_dataframe().to_html(**kwargs) for poule in self.poules)
