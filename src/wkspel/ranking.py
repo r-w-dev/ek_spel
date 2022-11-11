@@ -3,8 +3,8 @@ from sqlalchemy import desc, func
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import label
 
-from flask_model import Team, Ranking, User
-from session import Sessie
+from wkspel.model import Team, Ranking, User
+from wkspel.update import Sessie
 
 
 def to_dataframe(query):
@@ -61,7 +61,7 @@ class UserRanking(Sessie):
             df = pd.DataFrame(map(dict, result), index=range(1, len(result) + 1))
             print(df.to_markdown())
 
-    def totaal(self):
+    def update_totaal(self):
         subqry = self.get_ranking_query().subquery()
         col_totaal = getattr(subqry.c, self.TOTAAL)
         col_naam = getattr(subqry.c, self.NAAM_USER)
@@ -90,10 +90,7 @@ class TopUsers(Sessie):
             ).order_by(desc(User.punten))
             .limit(top_n)
             .all()
-        )
+        ).to_markdown(index=False)
 
     def print(self):
-        print(self.data.to_markdown(index=False))
-
-    def to_html(self, **kwargs):
-        return self.data.to_html(**kwargs)
+        print(self.data)

@@ -1,10 +1,35 @@
+import os
+
 from sqlalchemy import Integer, Column, String, Boolean, ForeignKey, DateTime, UniqueConstraint, \
     Table
-
+from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import declarative_base, relationship, validates
-from session import engine
-from config import TYPES, FINALS_MAPPER
+
+from wkspel.config import TYPES, FINALS_MAPPER
+
+engine = create_engine(os.environ["CONNECTION_STRING"], echo=False)
+
+
+@event.listens_for(engine, "connect")
+def do_connect(dbapi_connection, connection_record):
+    # disable pysqlite's emitting of the BEGIN statement entirely.
+    # also stops it from emitting COMMIT before any DDL.
+    dbapi_connection.isolation_level = None
+
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    # cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA busy_timeout=5000")
+    cursor.close()
+
+
+@event.listens_for(engine, "begin")
+def do_begin(conn):
+    # emit our own BEGIN
+    conn.exec_driver_sql("BEGIN")
 
 
 # define base
@@ -17,10 +42,12 @@ def has_table(table):
 
 def drop_table(table):
     if has_table(table):
+        print("Dropping table: ", str(table.__table__))
         table.__table__.drop(bind=engine)
 
 
 def create_table(table):
+    print("Creating table: ", str(table.__table__))
     table.__table__.create(bind=engine)
 
 
@@ -73,7 +100,6 @@ class TableBase:
 
 class User(Base):
     __tablename__ = 'users'
-    __table_args__ = {'sqlite_autoincrement': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     naam = Column(String)
@@ -86,6 +112,12 @@ class User(Base):
     bonusvraag_goals = Column(Integer)
     betaald = Column(Boolean, default=False)
     punten = Column(Integer, default=0)
+
+    __table_args__ = (
+        UniqueConstraint(naam, team_naam),
+        UniqueConstraint(topscoorder, bonusvraag_gk, bonusvraag_rk, bonusvraag_goals),
+        {'sqlite_autoincrement': True}
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, name={self.naam}, teamnaam={self.team_naam})"

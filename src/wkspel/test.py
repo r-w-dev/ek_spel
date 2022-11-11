@@ -21,4 +21,4 @@ from poule import Poule, PouleDatabase, POULES
 # UpdatePuntenSpel()
 from ranking import UserRanking
 
-UserRanking(1).totaal()
+UserRanking(1).update_totaal()
