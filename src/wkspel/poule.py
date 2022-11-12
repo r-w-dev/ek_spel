@@ -1,4 +1,4 @@
-from wkspel.config import WINST, GELIJK, VERLIES, get_points, get_punten_spel, ALL_TYPES
+from wkspel.config import config
 from wkspel.model import Team
 from wkspel.update import Query
 
@@ -33,7 +33,7 @@ class Poule:
         yield from self.data
 
     def __init__(self, poule):
-        if poule not in ALL_TYPES:
+        if poule not in config.all_types():
             raise ValueError(f"Poule onbekend: {poule}")
 
         self.data = {}
@@ -52,18 +52,18 @@ class Poule:
             self.add_values(away.team, away.goals, home.goals)
 
     def add_values(self, team, goals_made, goals_had):
-        cur_points = get_points(goals_made, goals_had)
+        cur_points = config.get_points(goals_made, goals_had)
         cur_team = self.data[team]
 
         cur_team[self.PLAYED] += 1 if goals_made is not None else 0
         cur_team[self.POINTS] += cur_points or 0
-        cur_team[self.WON] += cur_points == WINST
-        cur_team[self.DRAW] += cur_points == GELIJK
-        cur_team[self.LOST] += cur_points == VERLIES
+        cur_team[self.WON] += cur_points == config.WINST
+        cur_team[self.DRAW] += cur_points == config.GELIJK
+        cur_team[self.LOST] += cur_points == config.VERLIES
         cur_team[self.GOALS_MADE] += goals_made or 0
         cur_team[self.GOALS_HAD] += goals_had or 0
         cur_team[self.GOALS_SALDO] = self.saldo(team)
-        cur_team[self.GAME_POINTS] += get_punten_spel(cur_points, goals_made)
+        cur_team[self.GAME_POINTS] += config.get_punten_spel(cur_points, goals_made)
 
     def saldo(self, team):
         return self.data[team][self.GOALS_MADE] - self.data[team][self.GOALS_HAD]
@@ -97,7 +97,7 @@ class PouleDatabase:
         return self
 
     def add_all(self):
-        for poule in ALL_TYPES:
+        for poule in config.all_types():
             self.add(Poule(poule))
         return self
 

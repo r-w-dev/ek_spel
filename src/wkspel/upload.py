@@ -4,18 +4,18 @@ from random import shuffle
 
 import pandas as pd
 
-from wkspel.config import POINTS, TEAMS
+from wkspel.config import config
 from wkspel.excel import ExcelParser
 from wkspel.model import Team, Games, Ranking, User, recreate_table, has_table
 from wkspel.update import AddNewTeams, AddNewGames, AddNewUsers, UpdateScores
 
 
 def generate_ranking():
-    teams = list(TEAMS)
+    teams = list(config.TEAMS)
     shuffle(teams)
 
-    assert len(teams) == len(POINTS)
-    return [Ranking(team=Team(team=team), waarde=point) for team, point in zip(teams, POINTS)]
+    assert len(teams) == len(config.POINTS)
+    return [Ranking(team=Team(team=team), waarde=point) for team, point in zip(teams, config.POINTS)]
 
 
 class UploadBase:
@@ -71,7 +71,7 @@ class UploadGames(UploadBase):
 
     def _add_datum_tijd(self):
         df = self.data
-        df['date'] = df['datum'].str.removesuffix('00:00:00') + df['tijd'].str.removeprefix("1900-01-01 ")
+        df['date'] = df['datum'].str.removesuffix('00:00:00') + df['tijd'].str.removeprefix("1900-01-02 ")
         df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
 
     def upload(self):
@@ -83,11 +83,10 @@ class UploadGames(UploadBase):
         self._add_datum_tijd()
         iterator = self.data[["poule", "date", "stadium", "home_goals", "away_goals"]].itertuples()
         UpdateScores(iterator).commit()
+        return self
 
     def read(self, filepath: str):
         self.data = ExcelParser.read(filepath)
-        print(filepath)
-        print(self.data.info())
         return self
 
 

@@ -4,7 +4,7 @@ from typing import Iterable
 
 from sqlalchemy.orm import Session
 
-from wkspel.config import POINTS, ALL_TYPES
+from wkspel.config import config
 from wkspel.model import Games, User, Ranking, Team, engine
 
 _session = Session(bind=engine)
@@ -29,7 +29,7 @@ class UpdatePuntenSpel(Sessie):
         from wkspel.poule import Poule
         teams = {}
 
-        for typ in ALL_TYPES:
+        for typ in config.all_types():
             poule = Poule(typ)
 
             for team in poule:
@@ -69,9 +69,9 @@ class UpdateScores(Sessie):
 
                 self.sessie.merge(game)
 
-    def reset(self):
-        self.sessie.merge(Games(id=self.game_id, goals=None))
-        self.flush()
+    # def reset(self):
+    #     self.sessie.merge(Games(id=self.game_id, goals=None))
+    #     self.flush()
 
 
 class AddNewUsers(Sessie):
@@ -100,7 +100,7 @@ class AddNewUsers(Sessie):
                 betaald=user['betaald'],
                 rankings=[
                     Ranking(team=Query.team_obj_by_name(team), waarde=points)
-                    for team, points in zip(user['rankings'], POINTS)
+                    for team, points in zip(user['rankings'], config.POINTS)
                 ]
             ) for user in users
         )
@@ -108,7 +108,8 @@ class AddNewUsers(Sessie):
 
 class AddNewGames(Sessie):
 
-    def create_game(self, *, id, date, stadium, poule, setting, **kwargs) -> Games:
+    @staticmethod
+    def create_game(*, id, date, stadium, poule, setting, **kwargs) -> Games:
         team = kwargs.get(f'{setting}_team')
         goals = kwargs.get(f'{setting}_goals')
 
