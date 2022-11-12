@@ -7,7 +7,7 @@ class ExcelFile:
 
     SHEET: str
     FILENAME: str
-    HEADER: int
+    SKIPROWS: int
     COLUMNS: list[str | int]
     NAMES: list[str]
 
@@ -20,19 +20,20 @@ class ExcelFile:
         return pd.read_excel(
             path,
             cls.SHEET,
-            header=cls.HEADER,
+            header=None,
             names=cls.NAMES,
             usecols=cls.COLUMNS,
+            skiprows=cls.SKIPROWS,
             dtype=str,
             engine=cls._ENGINE
-        ).dropna(how="all", axis=0)
+        ).dropna(how="all", axis=0)  # drop empty rows
 
 
 class EKspel2021(ExcelFile):
 
     SHEET = "programma + uitslag"
     FILENAME = "EKspel2021.xls"
-    HEADER = 1
+    SKIPROWS = 2
     COLUMNS = [0, 1, 2, 3, 4, 6, 7, 8, 10]
     NAMES = [
         'fase',
@@ -53,16 +54,16 @@ class WKspel2022(ExcelFile):
 
     SHEET = "speelschema"
     FILENAME = "WKspel2022.xlsx"
-    HEADER = 4
+    SKIPROWS = 5
     COLUMNS = [0, 1, 2, 3, 4, 5, 6, 7, 9]
     NAMES = [
         'fase',
         'poule',
         'datum',
         'tijd',
+        'stadium',
         'home_team',
         'away_team',
-        'stadium',
         'home_goals',
         'away_goals'
     ]
@@ -83,4 +84,4 @@ class ExcelParser:
         try:
             return cls.PARSER_HANDLERS[filename].read(filepath)
         except KeyError:
-            raise FileNotFoundError
+            raise KeyError("Config not found: " + filename)

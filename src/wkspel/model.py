@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import declarative_base, relationship, validates
 
-from wkspel.config import TYPES, FINALS_MAPPER
+from wkspel.config import config
 
 engine = create_engine(os.environ["CONNECTION_STRING"], echo=False)
 
@@ -90,6 +90,7 @@ def validate_int(value, nullable=False, gt_zero=True, key=None):
 
 class TableBase:
 
+    @classmethod
     def __tablename__(cls):
         pass
 
@@ -160,7 +161,7 @@ class Team(Base):
 
     @classmethod
     def get_final_team(cls, value):
-        return FINALS_MAPPER.get(value.upper()) or value
+        return config.FINALS_MAPPER.get(value.upper()) or value
 
     @classmethod
     def clean(cls, value):
@@ -236,8 +237,8 @@ class Games(Base):
 
     @classmethod
     def get_type(cls, group):
-        for typ in TYPES:
-            if group in TYPES[typ]:
+        for typ in config.TYPES:
+            if group in config.TYPES[typ]:
                 return typ
         else:
             raise ValueError
