@@ -8,10 +8,11 @@ from sqlalchemy.engine import make_url
 
 
 def create_handler(args: argparse.Namespace):
+    print("CREATE")
     from wkspel.model import create_all
 
     if args.recreate:
-        if input("Recreating tables, are you sure? ") != "IAMSURE":
+        if input("Recreating tables, are you sure? (type IAMSURE)") != "IAMSURE":
             print("Not sure, exiting")
             sys.exit(0)
 
@@ -20,6 +21,8 @@ def create_handler(args: argparse.Namespace):
 
 
 def load_handler(args: argparse.Namespace):
+    print("LOAD")
+
     if not (args.source_file or args.source_forms):
         print("No load parameters passed. See 'load --help'")
 
@@ -37,11 +40,19 @@ def load_handler(args: argparse.Namespace):
             UploadGames(args.recreate).read(filename).upload()
 
     if args.source_forms:
-        UploadUsers().read(args.source_forms).upload()
+        UploadUsers(args.recreate).read(args.source_forms).upload()
 
 
 def update_handler(args: argparse.Namespace):
+    print("UPDATE")
+
     from wkspel.update import UpdatePuntenSpel, UpdateUserPoints
+    from wkspel.upload import UploadGames, UploadTeams
+
+    if args.source_file:
+        print("Uploading scores")
+        UploadTeams().read(args.source_file).upload()
+        UploadGames().read(args.source_file).upload_scores()
 
     if not args.teams and not args.users:
         UpdatePuntenSpel().commit()
@@ -53,6 +64,8 @@ def update_handler(args: argparse.Namespace):
 
 
 def print_handler(args: argparse.Namespace):
+    print("PRINT")
+
     if args.top:
         from wkspel.ranking import TopUsers
         TopUsers(top_n=args.top).print()
@@ -63,6 +76,8 @@ def print_handler(args: argparse.Namespace):
 
 
 def dump_handler(args: argparse.Namespace):
+    print("DUMP")
+
     from wkspel.dump import Dump
 
     def dump_table(tablename: str):
@@ -98,6 +113,7 @@ def init_arg_parser():
     update = subparsers.add_parser("update", help="Update operations on tables")
     update.add_argument("--teams", action="store_true")
     update.add_argument("--users", action="store_true")
+    update.add_argument("--source_file", help="Path to source (excel) file")
     update.set_defaults(func=update_handler)
 
     print_ = subparsers.add_parser("print", help="print statistics")
@@ -121,7 +137,7 @@ def validate_connection_string():
 
     if url.database.endswith(".db") and Path(url.database).exists():
         # raise FileExistsError(url.database)
-        print("WARNING database exists: ", url.database)
+        print("Database exists: ", url.database)
 
 
 def main():

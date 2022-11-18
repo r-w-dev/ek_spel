@@ -125,6 +125,8 @@ class EKspel2021Config(BaseConfig):
 
 class WKspel2022Config(BaseConfig):
 
+    TOTAL_GAMES = 64
+
     POINTS = (100, 91, 83, 76, *range(70, 25, -5), 27, *range(24, 12, -2), *range(12, 0, -1))
 
     TEAMS = (

@@ -103,7 +103,7 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    naam = Column(String)
+    naam = Column(String, unique=True)
     team_naam = Column(String)
     leeftijd = Column(Integer)
     email = Column(String)
@@ -123,13 +123,13 @@ class User(Base):
     def __repr__(self):
         return f"<User(id={self.id}, name={self.naam}, teamnaam={self.team_naam})"
 
-    @validates('leeftijd', 'bonusvraag_gk', 'bonusvraag_rk', 'bonusvraag_goals')
+    @validates('bonusvraag_gk', 'bonusvraag_rk', 'bonusvraag_goals')
     def validate_int(self, key, value):
         return validate_int(value, key=key)
 
     @validates('email')
     def validate_email(self, key, value):
-        if '@' not in value:
+        if value and '@' not in value:
             raise ValueError
         return value
 
@@ -161,7 +161,12 @@ class Team(Base):
 
     @classmethod
     def get_final_team(cls, value):
-        return config.FINALS_MAPPER.get(value.upper()) or value
+        final_team = config.FINALS_MAPPER.get(value.upper())
+        if not final_team:
+            return value
+
+        assert final_team in config.TEAMS, f"'{final_team}'"
+        return final_team
 
     @classmethod
     def clean(cls, value):

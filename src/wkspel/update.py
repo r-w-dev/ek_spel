@@ -26,6 +26,8 @@ class Sessie:
 class UpdatePuntenSpel(Sessie):
 
     def __init__(self):
+        print("\nUpdating game points")
+
         from wkspel.poule import Poule
         teams = {}
 
@@ -39,17 +41,22 @@ class UpdatePuntenSpel(Sessie):
                     teams[team] += poule[team][Poule.GAME_POINTS]
 
         for team, punten in teams.items():
-            print(f"Updating team '{team}' to '{punten}' points")
-            self.sessie.merge(Team(id=Query.team_id_by_name(team), punten=punten))
+            team_id = Query.team_id_by_name(team)
+            huidig = Query.points_team(team_id)
+
+            if huidig != punten:
+                print(f"Updating '{team}' to '{punten}' points ({punten-huidig:+})")
+                self.sessie.merge(Team(id=team_id, punten=punten))
 
 
 class UpdateUserPoints(Sessie):
 
     def __init__(self):
+        print("\nUpdating user points")
         from wkspel.ranking import UserRanking
 
         for user in self.sessie.query(User):
-            UserRanking(user.id).update_totaal()
+            UserRanking(user).update_totaal()
 
 
 class UpdateScores(Sessie):
@@ -82,13 +89,13 @@ class AddNewUsers(Sessie):
 
         if not value and required:
             print(json.dumps(data, sort_keys=False, indent=2))
-            raise ValueError(f'WARNING: Required field: `{field}` not in data or empty for user:')
+            raise ValueError(f'Required field: `{field}` not in data or empty for user: {data["naam"]}')
 
         return value
 
     def __init__(self, *users: dict):
-        self.sessie.add_all(
-            User(
+        for user in users:
+            new_user = User(
                 naam=self.field_check(user, 'naam', required=True),
                 team_naam=self.field_check(user, 'team_naam'),
                 leeftijd=self.field_check(user, 'leeftijd'),
@@ -97,13 +104,14 @@ class AddNewUsers(Sessie):
                 bonusvraag_gk=self.field_check(user, 'bonusvraag_gk', required=True),
                 bonusvraag_rk=self.field_check(user, 'bonusvraag_rk', required=True),
                 bonusvraag_goals=self.field_check(user, 'bonusvraag_goals', required=True),
-                betaald=user['betaald'],
+                betaald=user.get('betaald', False),
                 rankings=[
                     Ranking(team=Query.team_obj_by_name(team), waarde=points)
                     for team, points in zip(user['rankings'], config.POINTS)
                 ]
-            ) for user in users
-        )
+            )
+            print("New user:", new_user.naam)
+            self.sessie.add(new_user)
 
 
 class AddNewGames(Sessie):
@@ -111,6 +119,8 @@ class AddNewGames(Sessie):
     @staticmethod
     def create_game(*, id, date, stadium, poule, setting, **kwargs) -> Games:
         team = kwargs.get(f'{setting}_team')
+        assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
+
         goals = kwargs.get(f'{setting}_goals')
 
         return Games(
@@ -136,7 +146,18 @@ class AddNewGames(Sessie):
 class AddNewTeams(Sessie):
 
     def __init__(self, *teams: str):
-        self.sessie.add_all(Team(team=team, team_finals=Team.get_final_team(team)) for team in teams)
+        for team in teams:
+            assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
+            team_obj = Query.team_obj_by_name(team)
+            final_team = Team.get_final_team(team)
+
+            if team_obj is None:
+                print("New team:", team)
+                self.sessie.add(Team(team=team, team_finals=final_team))
+            elif team_obj.team_finals in config.FINALS_MAPPER and team_obj.team_finals != final_team:
+                print(f"Updating finals: {team} = {final_team}")
+                team_obj.team_finals = final_team
+                self.sessie.merge(team_obj)
 
 
 class Query(Sessie):
@@ -162,8 +183,8 @@ class Query(Sessie):
         return cls.sessie.query(Team.id).filter(Team.team == Team.clean(team)).scalar()
 
     @classmethod
-    def team_obj_by_name(cls, team: str) -> Team:
-        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).first()
+    def team_obj_by_name(cls, team: str) -> Team | None:
+        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one_or_none()
 
     @classmethod
     def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[Games]:
@@ -176,4 +197,22 @@ class Query(Sessie):
                 Games.stadium == stadium
             )
             .all()
+        )
+
+    @classmethod
+    def points_team(cls, team_id: int) -> int:
+        return (
+            cls.sessie
+            .query(Team.punten)
+            .filter(Team.id == team_id)
+            .scalar()
+        )
+
+    @classmethod
+    def points_user(cls, user_id: int) -> int:
+        return (
+            cls.sessie
+            .query(User.punten)
+            .filter(User.id == user_id)
+            .scalar()
         )
