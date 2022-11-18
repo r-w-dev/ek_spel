@@ -20,6 +20,9 @@ class UserRanking(Sessie):
     TEAMNAAM_USER = 'User - teamnaam'
     PUNTEN_TEAM = 'Punten team'
 
+    def __init__(self, user: User):
+        self.user = user
+
     def get_ranking_query(self):
         FinalTeam = aliased(Team)
 
@@ -49,29 +52,20 @@ class UserRanking(Sessie):
             )
             .join(Ranking, User.id == Ranking.user_id)
             .join(team_all_points, team_all_points.c.id == Ranking.team_id)
-            .filter(Ranking.user_id == self.user_id)
+            .filter(Ranking.user_id == self.user.id)
             .order_by(User.naam, desc(Ranking.waarde))
         )
-
-    def __init__(self, user_id, print_=False):
-        self.user_id = user_id
-
-        if print_:
-            result = self.get_ranking_query().all()
-            df = pd.DataFrame(map(dict, result), index=range(1, len(result) + 1))
-            print(df.to_markdown())
 
     def update_totaal(self):
         subqry = self.get_ranking_query().subquery()
         col_totaal = getattr(subqry.c, self.TOTAAL)
         col_naam = getattr(subqry.c, self.NAAM_USER)
 
-        self.sessie.merge(
-            User(
-                id=self.user_id,
-                punten=self.sessie.query(func.sum(col_totaal)).group_by(col_naam).scalar()
-            )
-        )
+        points_update = self.sessie.query(func.sum(col_totaal)).group_by(col_naam).scalar()
+
+        if self.user.punten != points_update:
+            print(f"Updating '{self.user.naam}' to '{points_update}' points ({points_update-self.user.punten:+})")
+            self.sessie.merge(User(id=self.user.id, punten=points_update))
 
 
 class TopUsers(Sessie):

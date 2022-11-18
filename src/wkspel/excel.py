@@ -2,6 +2,8 @@ import os.path
 
 import pandas as pd
 
+from wkspel.config import config
+
 
 class ExcelFile:
 
@@ -78,10 +80,23 @@ class ExcelParser:
         "wk-2022-speelschema.xlsx": WKspel2022
     }
 
+    @staticmethod
+    def validate_teams(data: pd.DataFrame):
+        for team in data["home_team"]:
+            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+                raise ValueError(f"'{team}'")
+
+        for team in data["away_team"]:
+            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+                raise ValueError(f"'{team}'")
+
     @classmethod
     def read(cls, filepath: str) -> pd.DataFrame:
         _, filename = os.path.split(filepath)
         try:
-            return cls.PARSER_HANDLERS[filename].read(filepath)
+            data = cls.PARSER_HANDLERS[filename].read(filepath)
         except KeyError:
             raise KeyError("Config not found: " + filename)
+
+        cls.validate_teams(data)
+        return data

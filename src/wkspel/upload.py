@@ -60,8 +60,6 @@ class UploadTeams(UploadBase):
 
     def read(self, filepath: str):
         self.data = ExcelParser.read(filepath)
-        print(filepath)
-        print(self.data.info())
         return self
 
 
@@ -82,6 +80,7 @@ class UploadGames(UploadBase):
     def upload_scores(self):
         self._add_datum_tijd()
         iterator = self.data[["poule", "date", "stadium", "home_goals", "away_goals"]].itertuples()
+
         UpdateScores(iterator).commit()
         return self
 
@@ -103,10 +102,10 @@ class UploadUsers(UploadBase):
             'Aantal gele kaarten': 'bonusvraag_gk',
             'Aantal rode kaarten': 'bonusvraag_rk',
             'Aantal doelpunten': 'bonusvraag_goals',
-            'Topscoorder EK2021': 'topscoorder'
+            'Topscoorder WK2022': 'topscoorder'
         }
         return (
-            pd.read_excel(file, usecols='F:G', skiprows=1, engine="openpyxl", dtype=str)
+            pd.read_excel(file, usecols='F:G', skiprows=6, engine="openpyxl", dtype=str)
             .dropna(axis=0, how='all')
             .set_index('Bonusvragen')
             .rename(index=key_map)
@@ -117,29 +116,37 @@ class UploadUsers(UploadBase):
         )
 
     def get_user(self, file) -> dict:
-        key_map = {
-            'Naam': 'naam',
-            'Teamnaam': 'team_naam',
-            'Leeftijd': 'leeftijd',
-            'Email': 'email',
-            'Betaald': 'betaald'
+        return {
+            "naam": Path(file).stem,  # no suffix
+            "team_naam": None,
+            "leeftijd": None,
+            "email": None,
+            "betaald": False
         }
 
-        return (
-            pd.read_excel(file, usecols='I:J', skiprows=1, engine="openpyxl", dtype=str)
-            .dropna(axis=0, how='all')
-            .set_index('Gebruiker')
-            .squeeze()
-            .map(str.strip, na_action='ignore')
-            .rename(index=key_map)
-            .fillna('')
-            .to_dict()
-        )
+        # key_map = {
+        #     'Naam': 'naam',
+        #     'Teamnaam': 'team_naam',
+        #     'Leeftijd': 'leeftijd',
+        #     'Email': 'email',
+        #     'Betaald': 'betaald'
+        # }
+        #
+        # return (
+        #     pd.read_excel(file, usecols='I:J', skiprows=1, engine="openpyxl", dtype=str)
+        #     .dropna(axis=0, how='all')
+        #     .set_index('Gebruiker')
+        #     .squeeze()
+        #     .map(str.strip, na_action='ignore')
+        #     .rename(index=key_map)
+        #     .fillna('')
+        #     .to_dict()
+        # )
 
     def get_ranking(self, file) -> list:
         values = pd.read_excel(
             file,
-            skiprows=1,
+            skiprows=6,
             usecols='C',
             engine="openpyxl",
             dtype=str
@@ -150,6 +157,7 @@ class UploadUsers(UploadBase):
         self.data = [
             {'rankings': self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
             for file in Path(path).glob(self.GLOB)
+            if not file.name.startswith("_")
         ]
         return self
 
