@@ -5,6 +5,7 @@ __pycache__/
 *$py.class
 
 .env
+**/final_mapper.json
 
 # C extensions
 *.so
