@@ -131,7 +131,8 @@ def validate_connection_string():
     conn_string = os.environ.get("CONNECTION_STRING")
 
     if not conn_string:
-        raise ConnectionError("No connection defined in environment variable 'CONNECTION_STRING")
+        raise ConnectionError("No connection defined in environment variable 'CONNECTION_STRING'")
+        raise ConnectionError("No connection defined in environment variable 'CONNECTION_STRING'")
 
     url = make_url(conn_string)
 
