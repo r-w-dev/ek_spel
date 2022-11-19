@@ -1,7 +1,7 @@
 [project]
-name = "WKspel2022"
+name = "wkspel2022"
 description = "Backend wk spel applicatie"
-version = "0.1.0"
+version = "0.5.0"
 authors = [
     { name = "Roel de Vries", email = "rwdevries89@gmail.com" }
 ]
@@ -17,8 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-]
+dev = []
 
 [project.scripts]
 wkspel2022 = "wkspel.main:main"
@@ -29,3 +28,6 @@ requires = [
     "setuptools ~=64.0.0",
     "wheel ~=0.38.1",
 ]
+
+[tool.distutils.bdist_wheel]
+universal = true
