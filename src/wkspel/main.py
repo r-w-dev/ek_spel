@@ -136,7 +136,6 @@ def validate_connection_string():
     url = make_url(conn_string)
 
     if url.database.endswith(".db") and Path(url.database).exists():
-        # raise FileExistsError(url.database)
         print("Database exists: ", url.database)
 
 

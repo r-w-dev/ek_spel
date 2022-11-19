@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 from pathlib import Path
 from random import shuffle
@@ -60,7 +61,26 @@ class UploadTeams(UploadBase):
 
     def read(self, filepath: str):
         self.data = ExcelParser.read(filepath)
+        self.update_final_mapper(filepath)
         return self
+
+    @staticmethod
+    def update_final_mapper(filepath: str):
+        final_mapper_json = Path(filepath).parent / "final_mapper.json"
+
+        if final_mapper_json.exists():
+            print("Reading final mapper:", final_mapper_json)
+            data = json.loads(final_mapper_json.read_text())
+
+            for key, val in data.items():
+                assert key in config.FINALS_MAPPER.keys(), f"'{key}'"
+                assert val in config.TEAMS or val == "", f"'{val}'"
+
+            config.FINALS_MAPPER = data
+            print(json.dumps(config.FINALS_MAPPER, indent=2))
+        else:
+            print("Writing final mapper:", final_mapper_json)
+            final_mapper_json.write_text(json.dumps(config.FINALS_MAPPER, indent=2))
 
 
 class UploadGames(UploadBase):

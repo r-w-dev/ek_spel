@@ -154,7 +154,7 @@ class AddNewTeams(Sessie):
             if team_obj is None:
                 print("New team:", team)
                 self.sessie.add(Team(team=team, team_finals=final_team))
-            elif team_obj.team_finals in config.FINALS_MAPPER and team_obj.team_finals != final_team:
+            elif team_obj.team_finals != final_team:
                 print(f"Updating finals: {team} = {final_team}")
                 team_obj.team_finals = final_team
                 self.sessie.merge(team_obj)
