@@ -6,6 +6,7 @@ __pycache__/
 
 .env
 **/final_mapper.json
+programma/wk-2022-speelschema.xlsx
 
 *.whl
 

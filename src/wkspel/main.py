@@ -132,7 +132,6 @@ def validate_connection_string():
 
     if not conn_string:
         raise ConnectionError("No connection defined in environment variable 'CONNECTION_STRING'")
-        raise ConnectionError("No connection defined in environment variable 'CONNECTION_STRING'")
 
     url = make_url(conn_string)
 
@@ -146,7 +145,11 @@ def main():
 
     validate_connection_string()
 
-    args.func(args)  # call relevant handler
+    try:
+        args.func(args)  # call relevant handler
+    except AttributeError:
+        print("handler not known or passed, exiting..")
+        sys.exit(1)
 
 
 if __name__ == '__main__':

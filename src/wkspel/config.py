@@ -127,7 +127,7 @@ class WKspel2022Config(BaseConfig):
 
     TOTAL_GAMES = 64
 
-    POINTS = (100, 91, 83, 76, *range(70, 25, -5), 27, *range(24, 12, -2), *range(12, 0, -1))
+    POINTS = (80, *range(70, 35, -5), 36, 32, 28, 25, 22, 20, *range(18, 0, -1))
 
     TEAMS = (
         "Argentinië",

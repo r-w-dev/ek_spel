@@ -167,11 +167,12 @@ class UploadUsers(UploadBase):
         values = pd.read_excel(
             file,
             skiprows=6,
-            usecols='C',
+            usecols='C:D',
             engine="openpyxl",
             dtype=str
-        ).squeeze("columns").to_list()
-        return [Team.clean(val) for val in values]
+        )
+        assert tuple(values.iloc[:, 1].astype(int)) == config.POINTS, "Points inconsistent"
+        return [Team.clean(val) for val in values.iloc[:, 0]]
 
     def read(self, path: str):
         self.data = [
