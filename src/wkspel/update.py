@@ -88,7 +88,7 @@ class AddNewUsers(Sessie):
         value = data.get(field)
 
         if not value and required:
-            print(json.dumps(data, sort_keys=False, indent=2))
+            print(json.dumps(data, sort_keys=False, indent=2, ensure_ascii=False))
             raise ValueError(f'Required field: `{field}` not in data or empty for user: {data["naam"]}')
 
         return value

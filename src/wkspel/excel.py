@@ -18,17 +18,19 @@ class ExcelFile:
     @classmethod
     def read(cls, path: str) -> pd.DataFrame:
         assert len(cls.COLUMNS) == len(cls.NAMES), f"Lengths do not match: {len(cls.COLUMNS)} != {len(cls.NAMES)}"
-        # noinspection PyTypeChecker
-        return pd.read_excel(
-            path,
-            cls.SHEET,
-            header=None,
-            names=cls.NAMES,
-            usecols=cls.COLUMNS,
-            skiprows=cls.SKIPROWS,
-            dtype=str,
-            engine=cls._ENGINE
-        ).dropna(how="all", axis=0)  # drop empty rows
+
+        with open(path, "rb") as fp:
+            # noinspection PyTypeChecker
+            return pd.read_excel(
+                fp,
+                cls.SHEET,
+                header=None,
+                names=cls.NAMES,
+                usecols=cls.COLUMNS,
+                skiprows=cls.SKIPROWS,
+                dtype=str,
+                engine=cls._ENGINE
+            ).dropna(how="all", axis=0)  # drop empty rows
 
 
 class EKspel2021(ExcelFile):

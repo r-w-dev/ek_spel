@@ -140,6 +140,9 @@ def validate_connection_string():
 
 
 def main():
+    # windows default encoding is not utf-8
+    sys.stdout.reconfigure(encoding='utf-8')
+
     parser = init_arg_parser()
     args = parser.parse_args()
 

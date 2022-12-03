@@ -70,17 +70,23 @@ class UploadTeams(UploadBase):
 
         if final_mapper_json.exists():
             print("Reading final mapper:", final_mapper_json)
-            data = json.loads(final_mapper_json.read_text())
+
+            with open(final_mapper_json, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
 
             for key, val in data.items():
                 assert key in config.FINALS_MAPPER.keys(), f"'{key}'"
                 assert val in config.TEAMS or val == "", f"'{val}'"
 
             config.FINALS_MAPPER = data
-            print(json.dumps(config.FINALS_MAPPER, indent=2))
+            print(json.dumps(config.FINALS_MAPPER, indent=2, ensure_ascii=False))
+
         else:
             print("Writing final mapper:", final_mapper_json)
-            final_mapper_json.write_text(json.dumps(config.FINALS_MAPPER, indent=2))
+            final_mapper_json.write_text(
+                json.dumps(config.FINALS_MAPPER, indent=2, ensure_ascii=False),
+                encoding="utf-8"
+            )
 
 
 class UploadGames(UploadBase):
