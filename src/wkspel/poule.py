@@ -71,7 +71,7 @@ class Poule:
     def to_dataframe(self):
         from pandas import DataFrame
 
-        data = {Team.get_final_team(key): val for key, val in self.data.items()}
+        data = {Query.team_obj_by_name(key).team_finals: val for key, val in self.data.items()}
 
         df: DataFrame = (
             DataFrame
