@@ -1,5 +1,4 @@
 from wkspel.config import config
-from wkspel.model import Team
 from wkspel.update import Query
 
 
