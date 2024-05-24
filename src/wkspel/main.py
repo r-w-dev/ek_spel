@@ -12,7 +12,7 @@ def create_handler(args: argparse.Namespace):
     from wkspel.model import create_all
 
     if args.recreate:
-        if input("Recreating tables, are you sure? (type IAMSURE)") != "IAMSURE":
+        if input("Recreating tables, are you sure? (type IAMSURE)\n") != "IAMSURE":
             print("Not sure, exiting")
             sys.exit(0)
 

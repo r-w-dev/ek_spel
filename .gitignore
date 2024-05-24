@@ -13,6 +13,8 @@ programma/wk-2022-speelschema.xlsx
 # C extensions
 *.so
 
+.DS_Store
+
 *.ipynb
 *.xlsx
 *.xls

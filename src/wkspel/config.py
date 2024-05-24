@@ -222,5 +222,98 @@ class WKspel2022Config(BaseConfig):
     }
 
 
-# define config
-config = WKspel2022Config
+class EKspel2024Config(BaseConfig):
+
+    TOTAL_GAMES = 51
+
+    POINTS = (50, 43, 38, 33, 30, 27, *range(24, 12, -2), *range(12, 0, -1))
+
+    TEAMS = (
+        "Albanië",
+        "België",
+        "Denemarken",
+        "Duitsland",
+        "Engeland",
+        "Frankrijk",
+        "Georgië",
+        "Hongarije",
+        "Italië",
+        "Kroatië",
+        "Nederland",
+        "Oekraïne",
+        "Oostenrijk",
+        "Polen",
+        "Portugal",
+        "Roemenië",
+        "Schotland",
+        "Servië",
+        "Slovenië",
+        "Slowakije",
+        "Spanje",
+        "Tsjechië",
+        "Turkije",
+        "Zwitserland",
+    )
+
+    TEAM_ALIAS = {
+        "Oekraine": "Oekraïne"
+    }
+
+    assert len(TEAMS) == len(POINTS) == 24
+
+    POULES = tuple("ABCDEF")
+
+    TYPES = {
+        "Poule": POULES,
+        "8_FINAL": ("8F1", "8F2", "8F3", "8F4", "8F5", "8F6", "8F7", "8F8"),
+        "Q_FINAL": ("QF1", "QF2", "QF3", "QF4"),
+        "S_FINAL": ("SF1", "SF2"),
+        "FINAL": ("FINAL",)
+    }
+
+    FINALS_MAPPER = {
+        # Eighth finals - first and second in poule
+        "1A": "",
+        "1B": "",
+        "1C": "",
+        "1D": "",
+        "1E": "",
+        "1F": "",
+
+        "2A": "",
+        "2B": "",
+        "2C": "",
+        "2D": "",
+        "2E": "",
+        "2F": "",
+
+        # best third place in poule
+        "3DEF": "",
+        "3ADEF": "",
+        "3ABC": "",
+        "3ABCD": "",
+
+        # Quarter finals - Winner Eight finals
+        "W8F1": "",
+        "W8F2": "",
+        "W8F3": "",
+        "W8F4": "",
+        "W8F5": "",
+        "W8F6": "",
+        "W8F7": "",
+        "W8F8": "",
+
+        # Semi finals - Winner Quater Final
+        "WQF1": "",
+        "WQF2": "",
+        "WQF3": "",
+        "WQF4": "",
+
+        # Final - Winner Semi Final
+        "WSF1": "",
+        "WSF2": "",
+    }
+
+
+# define current config
+config = EKspel2024Config

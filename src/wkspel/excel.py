@@ -8,7 +8,6 @@ from wkspel.config import config
 class ExcelFile:
 
     SHEET: str
-    FILENAME: str
     SKIPROWS: int
     COLUMNS: list[str | int]
     NAMES: list[str]
@@ -36,7 +35,6 @@ class ExcelFile:
 class EKspel2021(ExcelFile):
 
     SHEET = "programma + uitslag"
-    FILENAME = "EKspel2021.xls"
     SKIPROWS = 2
     COLUMNS = [0, 1, 2, 3, 4, 6, 7, 8, 10]
     NAMES = [
@@ -57,19 +55,38 @@ class EKspel2021(ExcelFile):
 class WKspel2022(ExcelFile):
 
     SHEET = "speelschema"
-    FILENAME = "WKspel2022.xlsx"
     SKIPROWS = 5
     COLUMNS = [0, 1, 2, 3, 4, 5, 6, 7, 9]
     NAMES = [
-        'fase',
-        'poule',
-        'datum',
-        'tijd',
-        'stadium',
-        'home_team',
-        'away_team',
-        'home_goals',
-        'away_goals'
+        "fase",
+        "poule",
+        "datum",
+        "tijd",
+        "stadium",
+        "home_team",
+        "away_team",
+        "home_goals",
+        "away_goals"
+    ]
+
+    _ENGINE = "openpyxl"
+
+
+class EKspel2024(ExcelFile):
+
+    SHEET = "speelschema"
+    SKIPROWS = 1
+    COLUMNS = [0, 1, 2, 3, 4, 5, 6, 7, 9]
+    NAMES = [
+        "fase",
+        "poule",
+        "datum",
+        "tijd",
+        "stadium",
+        "home_team",
+        "away_team",
+        "home_goals",
+        "away_goals"
     ]
 
     _ENGINE = "openpyxl"
@@ -79,7 +96,8 @@ class ExcelParser:
 
     PARSER_HANDLERS = {
         "EKspel2021.xls": EKspel2021,
-        "wk-2022-speelschema.xlsx": WKspel2022
+        "wk-2022-speelschema.xlsx": WKspel2022,
+        "ek-2024-speelschema.xlsx": EKspel2024
     }
 
     @staticmethod
