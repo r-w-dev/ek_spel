@@ -53,7 +53,7 @@ class UploadTeams(UploadBase):
     depends_on = []
 
     def find_teams(self):
-        return sorted(set(self.data['home_team']) | set(self.data['away_team']))
+        return sorted(set(self.data["home_team"]) | set(self.data["away_team"]))
 
     def upload(self):
         AddNewTeams(*self.find_teams()).commit()
@@ -95,8 +95,8 @@ class UploadGames(UploadBase):
 
     def _add_datum_tijd(self):
         df = self.data
-        df['date'] = df['datum'].str.removesuffix('00:00:00') + df['tijd'].str.removeprefix("1900-01-02 ")
-        df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
+        df["date"] = df["datum"].str.removesuffix("00:00:00") + df["tijd"].str.removeprefix("1900-01-02 ")
+        df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d %H:%M:%S")
 
     def upload(self):
         self._add_datum_tijd()
@@ -120,24 +120,25 @@ class UploadUsers(UploadBase):
     base = User
     depends_on = [UploadTeams, UploadGames]
 
-    ENGINE = 'openpyxl'
-    GLOB = '*.xlsx'
+    ENGINE = "openpyxl"
+    GLOB = "*.xlsx"
 
     def get_bonus(self, file) -> dict:
         key_map = {
-            'Aantal gele kaarten': 'bonusvraag_gk',
-            'Aantal rode kaarten': 'bonusvraag_rk',
-            'Aantal doelpunten': 'bonusvraag_goals',
-            'Topscoorder WK2022': 'topscoorder'
+            "Aantal gele kaarten": "bonusvraag_gk",
+            "Aantal rode kaarten": "bonusvraag_rk",
+            "Aantal doelpunten": "bonusvraag_goals",
+            "Topscoorder WK2022": "topscoorder",
+            "Topscoorder EK2024": "topscoorder"
         }
         return (
-            pd.read_excel(file, usecols='F:G', skiprows=6, engine="openpyxl", dtype=str)
-            .dropna(axis=0, how='all')
-            .set_index('Bonusvragen')
+            pd.read_excel(file, usecols="F:G", skiprows=6, engine="openpyxl", dtype=str)
+            .dropna(axis=0, how="all")
+            .set_index("Bonusvragen")
             .rename(index=key_map)
             .squeeze()
-            .map(str.strip, na_action='ignore')
-            .fillna('')
+            .map(str.strip, na_action="ignore")
+            .fillna("")
             .to_dict()
         )
 
@@ -173,7 +174,7 @@ class UploadUsers(UploadBase):
         values = pd.read_excel(
             file,
             skiprows=6,
-            usecols='C:D',
+            usecols="C:D",
             engine="openpyxl",
             dtype=str
         )
@@ -182,7 +183,7 @@ class UploadUsers(UploadBase):
 
     def read(self, path: str):
         self.data = [
-            {'rankings': self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
+            {"rankings": self.get_ranking(file)} | self.get_bonus(file) | self.get_user(file)
             for file in Path(path).glob(self.GLOB)
             if not file.name.startswith("_")
         ]

@@ -2,6 +2,7 @@ import datetime
 import json
 from typing import Iterable
 
+import sqlalchemy.exc
 from sqlalchemy.orm import Session
 
 from wkspel.config import config
@@ -89,25 +90,25 @@ class AddNewUsers(Sessie):
 
         if not value and required:
             print(json.dumps(data, sort_keys=False, indent=2, ensure_ascii=False))
-            raise ValueError(f'Required field: `{field}` not in data or empty for user: {data["naam"]}')
+            raise ValueError(f"Required field: `{field}` not in data or empty for user: {data['naam']}")
 
         return value
 
     def __init__(self, *users: dict):
         for user in users:
             new_user = User(
-                naam=self.field_check(user, 'naam', required=True),
-                team_naam=self.field_check(user, 'team_naam'),
-                leeftijd=self.field_check(user, 'leeftijd'),
-                email=self.field_check(user, 'email'),
-                topscoorder=self.field_check(user, 'topscoorder', required=True),
-                bonusvraag_gk=self.field_check(user, 'bonusvraag_gk', required=True),
-                bonusvraag_rk=self.field_check(user, 'bonusvraag_rk', required=True),
-                bonusvraag_goals=self.field_check(user, 'bonusvraag_goals', required=True),
-                betaald=user.get('betaald', False),
+                naam=self.field_check(user, "naam", required=True),
+                team_naam=self.field_check(user, "team_naam"),
+                leeftijd=self.field_check(user, "leeftijd"),
+                email=self.field_check(user, "email"),
+                topscoorder=self.field_check(user, "topscoorder", required=True),
+                bonusvraag_gk=self.field_check(user, "bonusvraag_gk", required=True),
+                bonusvraag_rk=self.field_check(user, "bonusvraag_rk", required=True),
+                bonusvraag_goals=self.field_check(user, "bonusvraag_goals", required=True),
+                betaald=user.get("betaald", False),
                 rankings=[
                     Ranking(team=Query.team_obj_by_name(team), waarde=points)
-                    for team, points in zip(user['rankings'], config.POINTS)
+                    for team, points in zip(user["rankings"], config.POINTS)
                 ]
             )
             print("New user:", new_user.naam)
@@ -118,10 +119,10 @@ class AddNewGames(Sessie):
 
     @staticmethod
     def create_game(*, id, date, stadium, poule, setting, **kwargs) -> Games:
-        team = kwargs.get(f'{setting}_team')
+        team = kwargs.get(f"{setting}_team")
         assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
 
-        goals = kwargs.get(f'{setting}_goals')
+        goals = kwargs.get(f"{setting}_goals")
 
         return Games(
             id=id,
@@ -137,10 +138,10 @@ class AddNewGames(Sessie):
     def __init__(self, *games: dict):
         for game in games:
             assert isinstance(game, dict)
-            game['id'] = game.pop('Index')
+            game['id'] = game.pop("Index")
 
-            self.sessie.add(self.create_game(**game | {'setting': 'home'}))
-            self.sessie.add(self.create_game(**game | {'setting': 'away'}))
+            self.sessie.add(self.create_game(**game | {"setting": "home"}))
+            self.sessie.add(self.create_game(**game | {"setting": "away"}))
 
 
 class AddNewTeams(Sessie):
@@ -148,16 +149,18 @@ class AddNewTeams(Sessie):
     def __init__(self, *teams: str):
         for team in teams:
             assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
-            team_obj = Query.team_obj_by_name(team)
             final_team = Team.get_final_team(team)
 
-            if team_obj is None:
+            try:
+                team_obj = Query.team_obj_by_name(team)
+            except sqlalchemy.exc.NoResultFound:
                 print("New team:", team)
                 self.sessie.add(Team(team=team, team_finals=final_team))
-            elif team_obj.team_finals != final_team:
-                print(f"Updating finals: {team} = {final_team}")
-                team_obj.team_finals = final_team
-                self.sessie.merge(team_obj)
+            else:
+                if team_obj.team_finals != final_team:
+                    print(f"Updating finals: {team} = {final_team}")
+                    team_obj.team_finals = final_team
+                    self.sessie.merge(team_obj)
 
 
 class Query(Sessie):
@@ -184,7 +187,7 @@ class Query(Sessie):
 
     @classmethod
     def team_obj_by_name(cls, team: str) -> Team | None:
-        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one_or_none()
+        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one()
 
     @classmethod
     def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[Games]:
