@@ -95,24 +95,27 @@ class AddNewUsers(Sessie):
         return value
 
     def __init__(self, *users: dict):
-        for user in users:
-            new_user = User(
-                naam=self.field_check(user, "naam", required=True),
-                team_naam=self.field_check(user, "team_naam"),
-                leeftijd=self.field_check(user, "leeftijd"),
-                email=self.field_check(user, "email"),
-                topscoorder=self.field_check(user, "topscoorder", required=True),
-                bonusvraag_gk=self.field_check(user, "bonusvraag_gk", required=True),
-                bonusvraag_rk=self.field_check(user, "bonusvraag_rk", required=True),
-                bonusvraag_goals=self.field_check(user, "bonusvraag_goals", required=True),
-                betaald=user.get("betaald", False),
-                rankings=[
-                    Ranking(team=Query.team_obj_by_name(team), waarde=points)
-                    for team, points in zip(user["rankings"], config.POINTS)
-                ]
-            )
-            print("New user:", new_user.naam)
-            self.sessie.add(new_user)
+        # Query.team_obj_by_name triggers flush prematurely
+        # auto increment id are not populated yet
+        with self.sessie.no_autoflush:
+            for user in users:
+                new_user = User(
+                    naam=self.field_check(user, "naam", required=True),
+                    team_naam=self.field_check(user, "team_naam"),
+                    leeftijd=self.field_check(user, "leeftijd"),
+                    email=self.field_check(user, "email"),
+                    topscoorder=self.field_check(user, "topscoorder", required=True),
+                    bonusvraag_gk=self.field_check(user, "bonusvraag_gk", required=True),
+                    bonusvraag_rk=self.field_check(user, "bonusvraag_rk", required=True),
+                    bonusvraag_goals=self.field_check(user, "bonusvraag_goals", required=True),
+                    betaald=user.get("betaald", False),
+                    rankings=[
+                        Ranking(team=Query.team_obj_by_name(team), waarde=points)
+                        for team, points in zip(user["rankings"], config.POINTS)
+                    ]
+                )
+                print("New user:", new_user.naam)
+                self.sessie.add(new_user)
 
 
 class AddNewGames(Sessie):

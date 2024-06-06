@@ -1,4 +1,4 @@
-from update import Sessie
+from wkspel.update import Sessie
 import pandas as pd
 
 
@@ -12,11 +12,11 @@ class Dump(Sessie):
         self.data = pd.read_sql(self.query, self.sessie.bind.engine)
 
     def to_excel(self):
-        filename = f'{self._today}_dump_users.xlsx'
+        filename = f'{self._today}_dump_{self.obj.__tablename__}.xlsx'
         self.data.to_excel(filename, engine='openpyxl', index=False)
-        print(f'DUMP: {self.obj} to {filename}')
+        print(f'DUMP: {self.obj.__tablename__} to {filename}')
 
     def to_csv(self):
-        filename = f'{self._today}_dump_users.csv'
+        filename = f'{self._today}_dump_{self.obj.__tablename__}.csv'
         self.data.to_csv(filename, index=False, sep=';')
-        print(f'DUMP: {self.obj} to {filename}')
+        print(f'DUMP: {self.obj.__tablename__} to {filename}')

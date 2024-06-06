@@ -1,10 +1,11 @@
 import os
 import argparse
 import sys
-from importlib import import_module
 from pathlib import Path
 
 from sqlalchemy.engine import make_url
+
+MODELS = ["User", "Team", "Ranking", "Games"]
 
 
 def create_handler(args: argparse.Namespace):
@@ -63,16 +64,26 @@ def update_handler(args: argparse.Namespace):
         UpdateUserPoints().commit()
 
 
-def print_handler(args: argparse.Namespace):
+def print_user_handler(args: argparse.Namespace):
     print("PRINT")
+    top_n = args.top or 100_000
 
-    if args.top:
-        from wkspel.ranking import TopUsers
-        TopUsers(top_n=args.top).print()
+    print(f"Top {top_n} users")
 
-    if args.poule:
-        from wkspel.poule import PouleDatabase
-        PouleDatabase().add_all().print()
+    from wkspel.ranking import TopUsers
+    TopUsers(top_n=top_n).print()
+
+
+def print_poule_handler(args: argparse.Namespace):
+    print(f"Poule {args.poule}")
+    from wkspel.poule import PouleDatabase, Poule
+
+    poule_db = PouleDatabase()
+
+    if args.poule == "all":
+        poule_db.add_all().print()
+    else:
+        poule_db.add(Poule(args.poule)).print()
 
 
 def dump_handler(args: argparse.Namespace):
@@ -81,14 +92,14 @@ def dump_handler(args: argparse.Namespace):
     from wkspel.dump import Dump
 
     def dump_table(tablename: str):
-        model = import_module("model")
-        Dump(getattr(model, tablename)).to_excel()
+        import wkspel.model as models
+        print("Dumping", table)
+        Dump(getattr(models, tablename)).to_excel()
 
     if args.table:
         dump_table(args.table)
-
     else:
-        for table in args.table.choices:
+        for table in MODELS:
             dump_table(table)
 
 
@@ -116,13 +127,17 @@ def init_arg_parser():
     update.add_argument("--source_file", help="Path to source (excel) file")
     update.set_defaults(func=update_handler)
 
-    print_ = subparsers.add_parser("print", help="print statistics")
-    print_.add_argument("--top", type=int, action="store")
-    print_.add_argument("--poule", action="store", default="all")
-    print_.set_defaults(func=print_handler)
+    print_user = subparsers.add_parser("print_ranking", help="print user ranking")
+    print_user.add_argument("--top", type=int, action="store", help="Top n users")
+    print_user.set_defaults(func=print_user_handler)
+
+    print_poules = subparsers.add_parser("print_poules", help="print poules")
+    print_poules.add_argument("--poule", action="store", default="all")
+    print_poules.set_defaults(func=print_poule_handler)
 
     dump = subparsers.add_parser("dump", help="Dump to file")
-    dump.add_argument("--table", action="store", choices=["User", "Team", "Ranking", "Games"])
+    dump.add_argument("--table", action="store", choices=MODELS)
+    dump.set_defaults(func=dump_handler)
 
     return arg_parser
 
@@ -141,7 +156,7 @@ def validate_connection_string():
 
 def main():
     # windows default encoding is not utf-8
-    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stdout.reconfigure(encoding="utf-8")
 
     parser = init_arg_parser()
     args = parser.parse_args()

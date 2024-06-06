@@ -2,11 +2,11 @@
 name = "wkspel2022"
 description = "Backend wk spel applicatie"
 readme = "README.md"
-version = "0.7.0"
+version = "0.8.1"
 authors = [
     { name = "Roel de Vries", email = "rwdevries89@gmail.com" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
     "SQLAlchemy~=1.4.0",
     "pandas~=1.5.0",
@@ -22,6 +22,7 @@ dev = []
 
 [project.scripts]
 wkspel2022 = "wkspel.main:main"
+ekspel2024 = "wkspel.main:main"
 
 [build-system]
 build-backend = "setuptools.build_meta"
