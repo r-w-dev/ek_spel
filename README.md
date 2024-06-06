@@ -17,11 +17,12 @@ usage: wkspel2022 [-h] {create,load,update,print,dump} ...
 WKspel 2002 application
 
 positional arguments:
-  {create,load,update,print,dump}
+  {create,load,update,print_ranking,print_poules,dump}
     create              Migrate tables into the database
     load                Initial load of all data
     update              Update operations on tables
-    print               print statistics
+    print_ranking       print user ranking
+    print_poules        print poule(s)
     dump                Dump to file
 
 options:
