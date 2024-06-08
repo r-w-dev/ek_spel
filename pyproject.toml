@@ -2,7 +2,7 @@
 name = "wkspel2022"
 description = "Backend wk spel applicatie"
 readme = "README.md"
-version = "0.8.1"
+version = "0.8.2"
 authors = [
     { name = "Roel de Vries", email = "rwdevries89@gmail.com" }
 ]

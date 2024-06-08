@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Iterable
+from typing import Iterable, Optional
 
 import sqlalchemy.exc
 from sqlalchemy.orm import Session
@@ -189,7 +189,7 @@ class Query(Sessie):
         return cls.sessie.query(Team.id).filter(Team.team == Team.clean(team)).scalar()
 
     @classmethod
-    def team_obj_by_name(cls, team: str) -> Team | None:
+    def team_obj_by_name(cls, team: str) -> Optional[Team]:
         return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one()
 
     @classmethod

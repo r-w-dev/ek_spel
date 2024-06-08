@@ -1,4 +1,5 @@
 import os.path
+from typing import Union
 
 import pandas as pd
 
@@ -9,7 +10,7 @@ class ExcelFile:
 
     SHEET: str
     SKIPROWS: int
-    COLUMNS: list[str | int]
+    COLUMNS: list[Union[str, int]]
     NAMES: list[str]
 
     _ENGINE: str

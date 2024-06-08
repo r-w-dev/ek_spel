@@ -123,7 +123,8 @@ class UploadUsers(UploadBase):
     ENGINE = "openpyxl"
     GLOB = "*.xlsx"
 
-    def get_bonus(self, file) -> dict:
+    @staticmethod
+    def get_bonus(file) -> dict:
         key_map = {
             "Aantal gele kaarten": "bonusvraag_gk",
             "Aantal rode kaarten": "bonusvraag_rk",
@@ -142,7 +143,8 @@ class UploadUsers(UploadBase):
             .to_dict()
         )
 
-    def get_user(self, file) -> dict:
+    @staticmethod
+    def get_user(file) -> dict:
         return {
             "naam": Path(file).stem,  # no suffix
             "team_naam": None,
@@ -170,7 +172,8 @@ class UploadUsers(UploadBase):
         #     .to_dict()
         # )
 
-    def get_ranking(self, file) -> list:
+    @staticmethod
+    def get_ranking(file) -> list:
         values = pd.read_excel(
             file,
             skiprows=6,
