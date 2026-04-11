@@ -13,8 +13,8 @@ class Dump(Sessie):
     def __init__(self, obj):
         self.obj = obj
         self.query = select(self.obj).order_by(self.obj.id)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", UserWarning)
+        # python > 3.11
+        with warnings.catch_warnings(category=UserWarning, action='ignore'):
             self.data = pd.read_sql(str(self.query), self.sessie.bind.raw_connection())
 
     def to_excel(self):
