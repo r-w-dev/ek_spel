@@ -1,35 +1,30 @@
+[build-system]
+build-backend = "uv_build"
+requires = [ "uv-build>=0.11.6,<0.12" ]
+
 [project]
 name = "wkspel2022"
+version = "0.8.2"
 description = "Backend wk spel applicatie"
 readme = "README.md"
-version = "0.8.2"
-authors = [
-    { name = "Roel de Vries", email = "rwdevries89@gmail.com" }
+authors = [ { name = "Roel de Vries", email = "rwdevries89@gmail.com" } ]
+requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
-requires-python = ">=3.9"
 dependencies = [
-    "SQLAlchemy~=1.4.0",
-    "pandas~=1.5.0",
-    "xlrd~=2.0.0",
-    "tabulate~=0.9.0",
-    "openpyxl~=3.0.0",
-    "xlrd==2.0.1",
-    "python-dotenv~=0.21.0"
+  "openpyxl==3.1.5",
+  "pandas==2.3.3",
+  "python-dotenv==1.2.2",
+  "sqlalchemy==1.4.54",
+  "six==1.17.0",
+  "tabulate==0.10",
+  "xlrd==2.0.2"
 ]
-
-[project.optional-dependencies]
-dev = []
-
-[project.scripts]
-wkspel2022 = "wkspel.main:main"
-ekspel2024 = "wkspel.main:main"
-
-[build-system]
-build-backend = "setuptools.build_meta"
-requires = [
-    "setuptools ~=64.0.0",
-    "wheel ~=0.38.1",
-]
-
-[tool.distutils.bdist_wheel]
-universal = true
+optional-dependencies.dev = [ "pyproject-fmt==2.21" ]
+scripts.ekspel2024 = "wkspel.main:main"
+scripts.wkspel2022 = "wkspel.main:main"
