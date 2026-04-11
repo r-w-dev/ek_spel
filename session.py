@@ -1,5 +1,5 @@
 import os
-from config import DB_CONFIG, DEBUG
+from wkspel.config import DB_CONFIG, DEBUG
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session

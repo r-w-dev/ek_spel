@@ -45,7 +45,7 @@ def load_handler(args: argparse.Namespace):
 
 
 def update_handler(args: argparse.Namespace):
-    print("UPDATE")
+    print(f"UPDATE - TEAMS: {args.teams} - USERS: {args.users}")
 
     from wkspel.update import UpdatePuntenSpel, UpdateUserPoints
     from wkspel.upload import UploadGames, UploadTeams

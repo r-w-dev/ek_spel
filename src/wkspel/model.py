@@ -203,7 +203,7 @@ class Ranking(Base):
         return validate_int(value, key=key, nullable=True)
 
 
-User.rankings = relationship("Ranking", order_by=Ranking.id, back_populates="user")
+User.rankings = relationship("Ranking", order_by=Ranking.id, back_populates="user", cascade="all, delete-orphan", lazy="immediate")
 Team.rankings = relationship("Ranking", order_by=Ranking.id, back_populates="team")
 
 

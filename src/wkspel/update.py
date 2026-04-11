@@ -95,6 +95,9 @@ class AddNewUsers(Sessie):
         return value
 
     def __init__(self, *users: dict):
+        # clear rankings first
+        # self.sessie.query(Ranking).delete()
+
         # Query.team_obj_by_name triggers flush prematurely
         # auto increment id are not populated yet
         with self.sessie.no_autoflush:
@@ -114,6 +117,11 @@ class AddNewUsers(Sessie):
                         for team, points in zip(user["rankings"], config.POINTS)
                     ]
                 )
+
+                if obj := self.sessie.query(User).filter(User.naam == new_user.naam).scalar():
+                    self.sessie.delete(obj)
+                    self.sessie.flush()
+
                 print("New user:", new_user.naam)
                 self.sessie.add(new_user)
 
