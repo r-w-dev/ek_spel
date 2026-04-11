@@ -32,10 +32,14 @@ Have fun!
 ```
 
 ## Gebruik
-1. Specificeer altijd database in `CONNECTION_STRING` environment variabele
+1. Specificeer altijd een database in de `CONNECTION_STRING` environment variabele
+    - bv: `CONNECTION_STRING="sqlite:////Users/test.db"`
 2. Run `wkspel2022 create`
-3. Run `wkspel2022 load --source_file=<programma xlsx> --invullijsten=<map met lijsten>`
+3. Run `wkspel2022 load --source_file=<programma xlsx> --source_forms=<map met lijsten>`
    - Lijsten die met een underscore `_` beginnen, worden genegeerd
 4. Update scores in programma, daarna `wkspel2022 update --source_file=<programma xlsx>`
 5. Update `final_mapper.json` in dezelfde map als waar het programma staat
-6. `wkspel2022 print`
+6. Export
+  - `wkspel2022 print_ranking`
+  - `wkspel2022 print_poules`
+  - Excel: `wkspel2022 dump --table {User,Team,Ranking,Games}`

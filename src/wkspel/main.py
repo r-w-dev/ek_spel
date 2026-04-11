@@ -93,7 +93,7 @@ def dump_handler(args: argparse.Namespace):
 
     def dump_table(tablename: str):
         import wkspel.model as models
-        print("Dumping", table)
+        print("Dumping", tablename)
         Dump(getattr(models, tablename)).to_excel()
 
     if args.table:
@@ -167,6 +167,7 @@ def main():
         args.func(args)  # call relevant handler
     except AttributeError:
         print("handler not known or passed, exiting..")
+        raise
         sys.exit(1)
 
 

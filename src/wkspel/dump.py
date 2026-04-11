@@ -1,5 +1,9 @@
-from wkspel.update import Sessie
+import warnings
+
 import pandas as pd
+from sqlalchemy import select
+
+from wkspel.update import Sessie
 
 
 class Dump(Sessie):
@@ -8,8 +12,10 @@ class Dump(Sessie):
 
     def __init__(self, obj):
         self.obj = obj
-        self.query = self.sessie.query(self.obj).order_by(self.obj.id).statement
-        self.data = pd.read_sql(self.query, self.sessie.bind.engine)
+        self.query = select(self.obj).order_by(self.obj.id)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self.data = pd.read_sql(str(self.query), self.sessie.bind.raw_connection())
 
     def to_excel(self):
         filename = f'{self._today}_dump_{self.obj.__tablename__}.xlsx'
