@@ -41,6 +41,7 @@ def load_handler(args: argparse.Namespace):
             UploadGames(args.recreate).read(filename).upload()
 
     if args.source_forms:
+        print(f"Processing source_forms from: {args.source_forms}")
         UploadUsers(args.recreate).read(args.source_forms).upload()
 
 

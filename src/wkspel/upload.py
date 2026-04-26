@@ -1,4 +1,5 @@
 import json
+import warnings
 from abc import abstractmethod
 from pathlib import Path
 from random import shuffle
@@ -130,7 +131,8 @@ class UploadUsers(UploadBase):
             "Aantal rode kaarten": "bonusvraag_rk",
             "Aantal doelpunten": "bonusvraag_goals",
             "Topscoorder WK2022": "topscoorder",
-            "Topscoorder EK2024": "topscoorder"
+            "Topscoorder EK2024": "topscoorder",
+            "Topscoorder WK2026": "topscoorder"
         }
         return (
             pd.read_excel(file, usecols="F:G", skiprows=6, engine="openpyxl", dtype=str)
@@ -174,14 +176,21 @@ class UploadUsers(UploadBase):
 
     @staticmethod
     def get_ranking(file) -> list:
-        values = pd.read_excel(
-            file,
-            skiprows=6,
-            usecols="C:D",
-            engine="openpyxl",
-            dtype=str
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            values = pd.read_excel(
+                file,
+                skiprows=6,
+                usecols="C:D",
+                engine="openpyxl",
+                dtype=str
+            )
         assert tuple(values.iloc[:, 1].astype(int)) == config.POINTS, "Points inconsistent"
+
+        if values.iloc[:, 0].isna().any():
+            msg = f"Team name(s) missing: {values.iloc[:, 0].isna().sum()}"
+            raise ValueError(msg)
+
         return [Team.clean(val) for val in values.iloc[:, 0]]
 
     def read(self, path: str):
