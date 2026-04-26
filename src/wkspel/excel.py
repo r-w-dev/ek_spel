@@ -104,11 +104,11 @@ class ExcelParser:
     @staticmethod
     def validate_teams(data: pd.DataFrame):
         for team in data["home_team"]:
-            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+            if team not in set(config.TEAMS) | config.FINALS_MAPPER:
                 raise ValueError(f"'{team}'")
 
         for team in data["away_team"]:
-            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+            if team not in set(config.TEAMS) | config.FINALS_MAPPER:
                 raise ValueError(f"'{team}'")
 
     @classmethod
