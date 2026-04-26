@@ -476,7 +476,6 @@ class WKspel2026Config(BaseConfig):
     }
 
     FINALS_MAPPER = {
-        # Round of 32 (called 32F)
         "1A": "",
         "1B": "",
         "1C": "",

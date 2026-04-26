@@ -169,7 +169,6 @@ def main():
     except AttributeError:
         print("handler not known or passed, exiting..")
         raise
-        sys.exit(1)
 
 
 if __name__ == '__main__':

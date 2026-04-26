@@ -72,7 +72,7 @@ class UploadTeams(UploadBase):
         if final_mapper_json.exists():
             print("Reading final mapper:", final_mapper_json)
 
-            with open(final_mapper_json, "r", encoding="utf-8") as fp:
+            with open(final_mapper_json, encoding="utf-8") as fp:
                 data = json.load(fp)
 
             for key, val in data.items():
