@@ -95,7 +95,7 @@ class UploadGames(UploadBase):
 
     def _add_datum_tijd(self):
         df = self.data
-        df["date"] = df["datum"].str.removesuffix("00:00:00") + df["tijd"].str.removeprefix("1900-01-01 ")
+        df["date"] = df["datum"].str.removesuffix("00:00:00") + " " + df["tijd"].str.removeprefix("1900-01-01 ")
         df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d %H:%M:%S")
 
     def upload(self):
