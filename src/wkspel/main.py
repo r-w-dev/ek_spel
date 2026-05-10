@@ -106,7 +106,7 @@ def dump_handler(args: argparse.Namespace):
 
 def init_arg_parser():
     arg_parser = argparse.ArgumentParser(
-        description="WKspel 2002 application",
+        description="WKspel application",
         epilog="Have fun!"
     )
     subparsers = arg_parser.add_subparsers()

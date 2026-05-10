@@ -26,5 +26,4 @@ dependencies = [
   "xlrd==2.0.2"
 ]
 optional-dependencies.dev = [ "pyproject-fmt==2.21" ]
-scripts.ekspel2024 = "wkspel.main:main"
-scripts.wkspel2022 = "wkspel.main:main"
+scripts.wkspel = "wkspel.main:main"
