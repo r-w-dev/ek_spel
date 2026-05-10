@@ -1,14 +1,24 @@
-# WKspel 2022
-
+# WKspel
 
 ## Installatie
-  - Installeer python >= `3.10`
-     - https://www.python.org/downloads/
-  - Maak een virtualenv: `python3 -m venv venv_wkspel` en zorg dat deze geactiveerd is
-  - Download wheel: https://github.com/r-w-dev/ek_spel/releases
-  - Installeer release, bv: `pip install wkspel2022-0.5.0-py2.py3-none-any.whl`
-    - Download ook programma xlsx
-  - Gebruik via de command line: `wkspel2022`
+  - Installeer [python](https://www.python.org/downloads/) niet ouder dan `3.11`
+  - Activeer een virtualenv
+    - macOS/Linux
+      ```bash
+      python3 -m venv venv_wkspel
+      source venv_wkspel/bin/activate
+      ```
+    - Windows
+      ```powershell
+      python -m venv venv_wkspel
+      venv_wkspel\Scripts\activate
+      ```
+  - Installeer release
+    ```bash
+    pip install git+https://github.com/r-w-dev/ek_spel.git@v0.9.0
+    ```
+  - Download ook programma xlsx
+  - Gebruik via de command line: `wkspel2026`
 
 
 ```

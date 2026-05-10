@@ -3,8 +3,8 @@ build-backend = "uv_build"
 requires = [ "uv-build>=0.11.6,<0.12" ]
 
 [project]
-name = "wkspel2022"
-version = "0.8.2"
+name = "wkspel"
+version = "0.9.0"
 description = "Backend wk spel applicatie"
 readme = "README.md"
 authors = [ { name = "Roel de Vries", email = "rwdevries89@gmail.com" } ]
