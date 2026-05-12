@@ -93,22 +93,43 @@ class EKspel2024(ExcelFile):
     _ENGINE = "openpyxl"
 
 
+class WKspel2026(ExcelFile):
+
+    SHEET = "speelschema"
+    SKIPROWS = 1
+    COLUMNS = [0, 1, 2, 3, 4, 5, 6, 7, 9]
+    NAMES = [
+        "fase",
+        "poule",
+        "datum",
+        "tijd",
+        "stadium",
+        "home_team",
+        "away_team",
+        "home_goals",
+        "away_goals"
+    ]
+
+    _ENGINE = "openpyxl"
+
+
 class ExcelParser:
 
     PARSER_HANDLERS = {
         "EKspel2021.xls": EKspel2021,
         "wk-2022-speelschema.xlsx": WKspel2022,
-        "ek-2024-speelschema.xlsx": EKspel2024
+        "ek-2024-speelschema.xlsx": EKspel2024,
+        "wk-2026-speelschema.xlsx": WKspel2026
     }
 
     @staticmethod
     def validate_teams(data: pd.DataFrame):
         for team in data["home_team"]:
-            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+            if team not in set(config.TEAMS) | set(config.FINALS_MAPPER):
                 raise ValueError(f"'{team}'")
 
         for team in data["away_team"]:
-            if team not in set(config.TEAMS) | config.FINALS_MAPPER.keys():
+            if team not in set(config.TEAMS) | set(config.FINALS_MAPPER):
                 raise ValueError(f"'{team}'")
 
     @classmethod

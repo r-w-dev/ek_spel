@@ -1,11 +1,14 @@
+from abc import ABC
 
-class BaseConfig:
+
+class BaseConfig(ABC):
 
     POINTS: tuple[int]
     TEAMS: tuple[str]
     POULES: tuple[str]
-    TYPES: dict
-    FINALS_MAPPER: dict
+    TYPES: dict[str, tuple[str]]
+    FINALS_MAPPER: dict[str, str]
+    TEAM_ALIAS: dict[str, str] = {}
 
     WINST = 3
     GELIJK = 1
@@ -315,5 +318,242 @@ class EKspel2024Config(BaseConfig):
     }
 
 
+class WKspel2026Config(BaseConfig):
+    """Configuration for WKspel 2026."""
+
+    TOTAL_GAMES = 104
+
+    POINTS = (
+        120,
+        110,
+        100,
+        95,
+        90,
+        85,
+        80,
+        75,
+        70,
+        66,
+        62,
+        58,
+        55,
+        52,
+        49,
+        46,
+        43,
+        40,
+        38,
+        36,
+        34,
+        32,
+        30,
+        28,
+        26,
+        24,
+        22,
+        20,
+        19,
+        18,
+        17,
+        16,
+        15,
+        14,
+        13,
+        12,
+        11,
+        10,
+        9,
+        8,
+        7,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0
+    )
+
+    TEAMS = (
+        "Algerije",
+        "Argentinië",
+        "Australië",
+        "België",
+        "Bosnië en Herzegovina",
+        "Brazilië",
+        "Canada",
+        "Colombia",
+        "Curaçao",
+        "Congo",
+        "Duitsland",
+        "Ecuador",
+        "Egypte",
+        "Engeland",
+        "Frankrijk",
+        "Ghana",
+        "Haïti",
+        "Irak",
+        "Iran",
+        "Ivoorkust",
+        "Japan",
+        "Jordanië",
+        "Kaapverdië",
+        "Kroatië",
+        "Marokko",
+        "Mexico",
+        "Nederland",
+        "Nieuw-Zeeland",
+        "Noorwegen",
+        "Oezbekistan",
+        "Oostenrijk",
+        "Panama",
+        "Paraguay",
+        "Portugal",
+        "Qatar",
+        "Saoedi-Arabië",
+        "Schotland",
+        "Senegal",
+        "Spanje",
+        "Tsjechië",
+        "Tunesië",
+        "Turkije",
+        "Verenigde Staten",
+        "Uruguay",
+        "Zuid-Afrika",
+        "Zuid-Korea",
+        "Zweden",
+        "Zwitserland",
+    )
+
+    assert len(TEAMS) == len(POINTS) == 48
+
+    POULES = tuple("ABCDEFGHIJKL")
+
+    TYPES = {
+        "Poule": POULES,
+        "32_FINAL": (
+            "32F1",
+            "32F2",
+            "32F3",
+            "32F4",
+            "32F5",
+            "32F6",
+            "32F7",
+            "32F8",
+            "32F9",
+            "32F10",
+            "32F11",
+            "32F12",
+            "32F13",
+            "32F14",
+            "32F15",
+            "32F16"
+        ),
+        "16_FINAL": (
+            "16F1",
+            "16F2",
+            "16F3",
+            "16F4",
+            "16F5",
+            "16F6",
+            "16F7",
+            "16F8"
+        ),
+        "Q_FINAL": (
+            "QF1",
+            "QF2",
+            "QF3",
+            "QF4"
+        ),
+        "S_FINAL": (
+            "SF1",
+            "SF2"
+        ),
+        "FINAL": (
+            "FINAL",
+            "3RD"
+        )
+    }
+
+    FINALS_MAPPER = {
+        "1A": "",
+        "1B": "",
+        "1C": "",
+        "1D": "",
+        "1E": "",
+        "1F": "",
+        "1G": "",
+        "1H": "",
+        "1I": "",
+        "1J": "",
+        "1K": "",
+        "1L": "",
+        "2A": "",
+        "2B": "",
+        "2C": "",
+        "2D": "",
+        "2E": "",
+        "2F": "",
+        "2G": "",
+        "2H": "",
+        "2I": "",
+        "2J": "",
+        "2K": "",
+        "2L": "",
+        "3ABCDF": "",
+        "3AEHIJ": "",
+        "3BEFIJ": "",
+        "3CDFGH": "",
+        "3CEFHI": "",
+        "3DEIJL": "",
+        "3EFGIJ": "",
+        "3EHIJK": "",
+
+        # Winners of Round of 32
+        "W32F1": "",
+        "W32F2": "",
+        "W32F3": "",
+        "W32F4": "",
+        "W32F5": "",
+        "W32F6": "",
+        "W32F7": "",
+        "W32F8": "",
+        "W32F9": "",
+        "W32F10": "",
+        "W32F11": "",
+        "W32F12": "",
+        "W32F13": "",
+        "W32F14": "",
+        "W32F15": "",
+        "W32F16": "",
+
+        # Winners of Round of 16
+        "W16F1": "",
+        "W16F2": "",
+        "W16F3": "",
+        "W16F4": "",
+        "W16F5": "",
+        "W16F6": "",
+        "W16F7": "",
+        "W16F8": "",
+
+        # Winners of Quarter finals
+        "WQF1": "",
+        "WQF2": "",
+        "WQF3": "",
+        "WQF4": "",
+
+        # Winners of Semi finals
+        "WSF1": "",
+        "WSF2": "",
+
+        # Losers of Semi finals (for 3rd place)
+        "LSF1": "",
+        "LSF2": "",
+    }
+
+    TEAM_ALIAS = {}
+
+
 # define current config
-config = EKspel2024Config
+config = WKspel2026Config

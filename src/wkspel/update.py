@@ -198,7 +198,11 @@ class Query(Sessie):
 
     @classmethod
     def team_obj_by_name(cls, team: str) -> Optional[Team]:
-        return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one()
+        try:
+            return cls.sessie.query(Team).filter(Team.team == Team.clean(team)).one()
+        except:
+            print(f"Team not found: {team}")
+            raise
 
     @classmethod
     def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[Games]:

@@ -2,35 +2,13 @@ import os
 
 from sqlalchemy import Integer, Column, String, Boolean, ForeignKey, DateTime, UniqueConstraint, \
     Table
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import declarative_base, relationship, validates
 
 from wkspel.config import config
 
 engine = create_engine(os.environ["CONNECTION_STRING"], echo=False)
-
-
-@event.listens_for(engine, "connect")
-def do_connect(dbapi_connection, connection_record):
-    # disable pysqlite's emitting of the BEGIN statement entirely.
-    # also stops it from emitting COMMIT before any DDL.
-    dbapi_connection.isolation_level = None
-
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA journal_mode=WAL")
-    # cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
-    cursor.execute("PRAGMA synchronous=NORMAL")
-    cursor.execute("PRAGMA busy_timeout=5000")
-    cursor.close()
-
-
-@event.listens_for(engine, "begin")
-def do_begin(conn):
-    # emit our own BEGIN
-    conn.exec_driver_sql("BEGIN")
-
 
 # define base
 Base = declarative_base(bind=engine)

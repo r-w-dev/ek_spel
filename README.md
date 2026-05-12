@@ -1,45 +1,63 @@
-# WKspel 2022
-
+# WKspel
 
 ## Installatie
-  - Installeer python >= `3.10`
-     - https://www.python.org/downloads/
-  - Maak een virtualenv: `python3 -m venv venv_wkspel` en zorg dat deze geactiveerd is
-  - Download wheel: https://github.com/r-w-dev/ek_spel/releases
-  - Installeer release, bv: `pip install wkspel2022-0.5.0-py2.py3-none-any.whl`
-    - Download ook programma xlsx
-  - Gebruik via de command line: `wkspel2022`
-
-
-```
-usage: wkspel2022 [-h] {create,load,update,print,dump} ...
-
-WKspel 2002 application
-
-positional arguments:
-  {create,load,update,print_ranking,print_poules,dump}
-    create              Migrate tables into the database
-    load                Initial load of all data
-    update              Update operations on tables
-    print_ranking       print user ranking
-    print_poules        print poule(s)
-    dump                Dump to file
-
-options:
-  -h, --help            show this help message and exit
-
-Have fun!
-```
+  - Installeer [Python](https://www.python.org/downloads/) niet ouder dan `3.11`
+  - Activeer een [virtualenv](https://virtualenv.pypa.io/en/latest/how-to/usage.html#activate-a-virtual-environment)
+    - macOS/Linux
+      ```bash
+      python3 -m venv venv_wkspel
+      source venv_wkspel/bin/activate
+      ```
+    - Windows
+      ```powershell
+      python -m venv venv_wkspel
+      .\venv_wkspel\Scripts\activate
+      ```
+  - Installeer release
+    ```bash
+    pip install git+https://github.com/r-w-dev/ek_spel.git@wkspel-2026
+    ```
+  - Download het WK speelschema [2026 xlsx](https://github.com/r-w-dev/ek_spel/blob/wkspel-2026/programma/2026/wk-2026-speelschema.xlsx) + [2026 final_mapper.json](https://github.com/r-w-dev/ek_spel/blob/wkspel-2026/programma/2026/final_mapper.json)
+    plaats de bestanden in 'wkspel2026' map
+  - Gebruik via de command line: `wkspel`
 
 ## Gebruik
-1. Specificeer altijd een database in de `CONNECTION_STRING` environment variabele
-    - bv: `CONNECTION_STRING="sqlite:////Users/test.db"`
-2. Run `wkspel2022 create`
-3. Run `wkspel2022 load --source_file=<programma xlsx> --source_forms=<map met lijsten>`
-   - Lijsten die met een underscore `_` beginnen, worden genegeerd
-4. Update scores in programma, daarna `wkspel2022 update --source_file=<programma xlsx>`
-5. Update `final_mapper.json` in dezelfde map als waar het programma staat
-6. Export
-  - `wkspel2022 print_ranking`
-  - `wkspel2022 print_poules`
-  - Excel: `wkspel2022 dump --table {User,Team,Ranking,Games}`
+1. Zorg dat je in dezelfde map staat als het speelschema en de final_mapper.json (`cd`)
+2. Maak map `invullijsten` en plaats de lijsten in deze map
+3. Specificeer een database in de `CONNECTION_STRING` environment variabele
+    - macOS/linux:
+       ```bash
+       export CONNECTION_STRING="sqlite:///wkspel2026.db"`
+       ```
+    - Windows (powershell):
+       ```powershell
+      $env:CONNECTION_STRING="sqlite:///wkspel2026.db"`
+      ```
+   - Windows (CMD):
+        ```cmd
+       set CONNECTION_STRING="sqlite:///wkspel2026.db"`
+       ```
+4. Initialiseer
+    ```bash
+    # Create database
+    wkspel create
+    
+    # load speelschema en invullijsten
+    wkspel load --source_file=wk-2026-speelschema.xlsx --source_forms=invullijsten
+    ```
+5. Update scores in het speelschema + final_mapper.json, daarna importeer de nieuwe scores
+    ```bash
+    # Update scores
+    wkspel update --source_file=wk-2026-speelschema.xlsx
+    ```
+6. (optioneel) export data
+    ```bash
+    # print ranking
+    wkspel print_ranking
+    
+    # print poules
+    wkspel print_poules
+    
+    # dump to file in current directory
+    wkspel dump --table {User,Team,Ranking,Games}
+    ```

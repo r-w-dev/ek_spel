@@ -41,6 +41,7 @@ def load_handler(args: argparse.Namespace):
             UploadGames(args.recreate).read(filename).upload()
 
     if args.source_forms:
+        print(f"Processing source_forms from: {args.source_forms}")
         UploadUsers(args.recreate).read(args.source_forms).upload()
 
 
@@ -105,7 +106,7 @@ def dump_handler(args: argparse.Namespace):
 
 def init_arg_parser():
     arg_parser = argparse.ArgumentParser(
-        description="WKspel 2002 application",
+        description="WKspel application",
         epilog="Have fun!"
     )
     subparsers = arg_parser.add_subparsers()
@@ -168,7 +169,6 @@ def main():
     except AttributeError:
         print("handler not known or passed, exiting..")
         raise
-        sys.exit(1)
 
 
 if __name__ == '__main__':

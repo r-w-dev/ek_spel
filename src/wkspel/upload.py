@@ -1,4 +1,5 @@
 import json
+import warnings
 from abc import abstractmethod
 from pathlib import Path
 from random import shuffle
@@ -71,7 +72,7 @@ class UploadTeams(UploadBase):
         if final_mapper_json.exists():
             print("Reading final mapper:", final_mapper_json)
 
-            with open(final_mapper_json, "r", encoding="utf-8") as fp:
+            with open(final_mapper_json, encoding="utf-8") as fp:
                 data = json.load(fp)
 
             for key, val in data.items():
@@ -95,7 +96,7 @@ class UploadGames(UploadBase):
 
     def _add_datum_tijd(self):
         df = self.data
-        df["date"] = df["datum"].str.removesuffix("00:00:00") + df["tijd"].str.removeprefix("1900-01-01 ")
+        df["date"] = df["datum"].str.removesuffix("00:00:00") + " " + df["tijd"].str.removeprefix("1900-01-01 ")
         df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d %H:%M:%S")
 
     def upload(self):
@@ -130,7 +131,8 @@ class UploadUsers(UploadBase):
             "Aantal rode kaarten": "bonusvraag_rk",
             "Aantal doelpunten": "bonusvraag_goals",
             "Topscoorder WK2022": "topscoorder",
-            "Topscoorder EK2024": "topscoorder"
+            "Topscoorder EK2024": "topscoorder",
+            "Topscoorder WK2026": "topscoorder"
         }
         return (
             pd.read_excel(file, usecols="F:G", skiprows=6, engine="openpyxl", dtype=str)
@@ -174,14 +176,21 @@ class UploadUsers(UploadBase):
 
     @staticmethod
     def get_ranking(file) -> list:
-        values = pd.read_excel(
-            file,
-            skiprows=6,
-            usecols="C:D",
-            engine="openpyxl",
-            dtype=str
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            values = pd.read_excel(
+                file,
+                skiprows=6,
+                usecols="C:D",
+                engine="openpyxl",
+                dtype=str
+            )
         assert tuple(values.iloc[:, 1].astype(int)) == config.POINTS, "Points inconsistent"
+
+        if values.iloc[:, 0].isna().any():
+            msg = f"Team name(s) missing: {values.iloc[:, 0].isna().sum()}"
+            raise ValueError(msg)
+
         return [Team.clean(val) for val in values.iloc[:, 0]]
 
     def read(self, path: str):
