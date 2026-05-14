@@ -15,9 +15,9 @@
       ```
   - Installeer release
     ```bash
-    pip install git+https://github.com/r-w-dev/ek_spel.git@wkspel-2026
+    pip install git+https://github.com/r-w-dev/ek_spel.git
     ```
-  - Download het WK speelschema [2026 xlsx](https://github.com/r-w-dev/ek_spel/blob/wkspel-2026/programma/2026/wk-2026-speelschema.xlsx) + [2026 final_mapper.json](https://github.com/r-w-dev/ek_spel/blob/wkspel-2026/programma/2026/final_mapper.json)
+  - Download het WK speelschema [2026 xlsx](https://github.com/r-w-dev/ek_spel/blob/main/programma/2026/wk-2026-speelschema.xlsx) + [2026 final_mapper.json](https://github.com/r-w-dev/ek_spel/blob/main/programma/2026/final_mapper.json)
     plaats de bestanden in 'wkspel2026' map
   - Gebruik via de command line: `wkspel`
 
