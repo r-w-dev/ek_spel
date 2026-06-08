@@ -92,6 +92,10 @@ class User(Base):
     betaald = Column(Boolean, default=False)
     punten = Column(Integer, default=0)
 
+    # 2026
+    bonusvraag_goal1_nl = Column(String)
+    bonusvraag_goals_nl = Column(Integer)
+
     __table_args__ = (
         UniqueConstraint(naam, team_naam),
         UniqueConstraint(topscoorder, bonusvraag_gk, bonusvraag_rk, bonusvraag_goals),

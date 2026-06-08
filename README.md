@@ -27,15 +27,15 @@
 3. Specificeer een database in de `CONNECTION_STRING` environment variabele
     - macOS/linux:
        ```bash
-       export CONNECTION_STRING="sqlite:///wkspel2026.db"`
+       export CONNECTION_STRING="sqlite:///wkspel2026.db"
        ```
     - Windows (powershell):
        ```powershell
-      $env:CONNECTION_STRING="sqlite:///wkspel2026.db"`
+      $env:CONNECTION_STRING="sqlite:///wkspel2026.db"
       ```
    - Windows (CMD):
         ```cmd
-       set CONNECTION_STRING="sqlite:///wkspel2026.db"`
+       set CONNECTION_STRING=sqlite:///wkspel2026.db
        ```
 4. Initialiseer
     ```bash

@@ -160,8 +160,13 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
 
     parser = init_arg_parser()
-    args = parser.parse_args()
 
+    # no argument case
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
+    args = parser.parse_args()
     validate_connection_string()
 
     try:

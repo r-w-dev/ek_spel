@@ -76,10 +76,11 @@ class TopUsers(Sessie):
                 User.id,
                 User.naam,
                 User.team_naam,
-                User.topscoorder,
                 User.bonusvraag_gk,
-                User.bonusvraag_rk,
                 User.bonusvraag_goals,
+                User.topscoorder,
+                User.bonusvraag_goal1_nl,
+                User.bonusvraag_goals_nl,
                 User.punten
             ).order_by(desc(User.punten))
             .limit(top_n)
