@@ -10,7 +10,7 @@ if not exist "venv_wkspel\" (
 
     echo Activating environment and installing wkspel...
     call .\venv_wkspel\Scripts\activate
-    pip upgrade pip -U
+    pip install pip -U
     pip install https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
 ) else (
     echo Activating virtual environment...
@@ -18,7 +18,7 @@ if not exist "venv_wkspel\" (
 )
 
 @echo off
-REM Set the database connection string
+REM Set the database connection string (wkspel2026.db)
 set CONNECTION_STRING=sqlite:///wkspel2026.db
 
 REM Remove existing database file if it exists
