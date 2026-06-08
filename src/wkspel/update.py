@@ -46,7 +46,7 @@ class UpdatePuntenSpel(Sessie):
             huidig = Query.points_team(team_id)
 
             if huidig != punten:
-                print(f"Updating '{team}' to '{punten}' points ({punten-huidig:+})")
+                print(f"Updating '{team}' to '{punten}' points ({punten - huidig:+})")
                 self.sessie.merge(Team(id=team_id, punten=punten))
 
 
@@ -90,7 +90,9 @@ class AddNewUsers(Sessie):
 
         if not value and required:
             print(json.dumps(data, sort_keys=False, indent=2, ensure_ascii=False))
-            raise ValueError(f"Required field: `{field}` not in data or empty for user: {data['naam']}")
+            raise ValueError(
+                f"Required field: `{field}` not in data or empty for user: {data['naam']}"
+            )
 
         return value
 
@@ -109,8 +111,14 @@ class AddNewUsers(Sessie):
                     email=self.field_check(user, "email"),
                     topscoorder=self.field_check(user, "topscoorder", required=True),
                     bonusvraag_gk=self.field_check(user, "bonusvraag_gk", required=True),
-                    bonusvraag_rk=self.field_check(user, "bonusvraag_rk", required=True),
+                    bonusvraag_rk=self.field_check(user, "bonusvraag_rk") or 0,
                     bonusvraag_goals=self.field_check(user, "bonusvraag_goals", required=True),
+                    bonusvraag_goals_nl=self.field_check(
+                        user, "bonusvraag_goals_nl", required=True
+                    ),
+                    bonusvraag_goal1_nl=self.field_check(
+                        user, "bonusvraag_goal1_nl", required=True
+                    ),
                     betaald=user.get("betaald", False),
                     rankings=[
                         Ranking(team=Query.team_obj_by_name(team), waarde=points)
@@ -131,7 +139,9 @@ class AddNewGames(Sessie):
     @staticmethod
     def create_game(*, id, date, stadium, poule, setting, **kwargs) -> Games:
         team = kwargs.get(f"{setting}_team")
-        assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
+        assert team in set(
+            config.TEAMS
+        ) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
 
         goals = kwargs.get(f"{setting}_goals")
 
@@ -159,7 +169,9 @@ class AddNewTeams(Sessie):
 
     def __init__(self, *teams: str):
         for team in teams:
-            assert team in set(config.TEAMS) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
+            assert team in set(
+                config.TEAMS
+            ) | config.FINALS_MAPPER.keys(), f"Team did not match: {team}"
             final_team = Team.get_final_team(team)
 
             try:
@@ -205,7 +217,8 @@ class Query(Sessie):
             raise
 
     @classmethod
-    def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[Games]:
+    def game_id_by_poule_team(cls, poule: str, date: datetime.datetime, stadium: str) -> list[
+        Games]:
         return (
             cls.sessie
             .query(Games)

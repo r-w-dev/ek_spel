@@ -130,9 +130,12 @@ class UploadUsers(UploadBase):
             "Aantal gele kaarten": "bonusvraag_gk",
             "Aantal rode kaarten": "bonusvraag_rk",
             "Aantal doelpunten": "bonusvraag_goals",
+            "Aantal doelpunten totaal": "bonusvraag_goals",
             "Topscoorder WK2022": "topscoorder",
             "Topscoorder EK2024": "topscoorder",
-            "Topscoorder WK2026": "topscoorder"
+            "Topscorer WK 2026": "topscoorder",
+            "Eerste doelpuntenmaker van Nederland": "bonusvraag_goal1_nl",
+            "Aantal doelpunten NL": "bonusvraag_goals_nl",
         }
         return (
             pd.read_excel(file, usecols="F:G", skiprows=6, engine="openpyxl", dtype=str)
