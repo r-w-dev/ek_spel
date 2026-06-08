@@ -17,9 +17,9 @@ if not exist "venv_wkspel\" (
     call .\venv_wkspel\Scripts\activate
 )
 
-@echo off
-REM Set the database connection string (wkspel2026.db)
-set CONNECTION_STRING=sqlite:///wkspel2026.db
+REM Set the database connection string using the full path to the current directory
+set "CONNECTION_STRING=sqlite:///%~dp0wkspel2026.db"
+echo CONNECTION_STRING is set to: %CONNECTION_STRING%
 
 REM Remove existing database file if it exists
 if exist "wkspel2026.db" (
