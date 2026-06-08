@@ -10,7 +10,7 @@ if not exist "venv_wkspel\" (
 
     echo Activating environment and installing wkspel...
     call .\venv_wkspel\Scripts\activate
-    pip install pip -U
+    python -m pip install pip -U
     pip install https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
 ) else (
     echo Activating virtual environment...
@@ -34,6 +34,9 @@ wkspel create
 echo Loading schedule and forms...
 REM Run wkspel load using --source_file="%~1" and --source_forms="%~2"
 wkspel load --source_file="%~1" --source_forms="%~2"
+
+echo Update scores
+wkspel update --source_file="%~1"
 
 REM Restore the original directory
 call .\venv_wkspel\Scripts\deactivate
