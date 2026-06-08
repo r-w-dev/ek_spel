@@ -1,6 +1,6 @@
 @echo off
-REM Set current directory to the script's location
-cd /d "%~dp0"
+REM Save current directory and change to script's location
+pushd "%~dp0"
 
 @echo off
 REM Check if virtual environment exists, if not, create it
@@ -35,5 +35,7 @@ echo Loading schedule and forms...
 REM Run wkspel load using --source_file="%~1" and --source_forms="%~2"
 wkspel load --source_file="%~1" --source_forms="%~2"
 
-echo Setup complete.
+REM Restore the original directory
+call .\venv_wkspel\Scripts\deactivate
+popd
 pause

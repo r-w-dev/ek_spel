@@ -119,7 +119,7 @@ class ExcelParser:
         "EKspel2021.xls": EKspel2021,
         "wk-2022-speelschema.xlsx": WKspel2022,
         "ek-2024-speelschema.xlsx": EKspel2024,
-        "wk-2026-speelschema-ingevuld.xlsx": WKspel2026
+        "wk-2026-speelschema.xlsx": WKspel2026
     }
 
     @staticmethod

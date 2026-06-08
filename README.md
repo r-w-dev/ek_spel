@@ -1,6 +1,12 @@
 # WKspel
 
-## Installatie
+## Run
+1. Download zip https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
+2. Extract
+3. Open Windows command prompt
+4. `.\<path to files>\scripts\run.cmd <path to source form file> <path to invullijsten folder>`
+
+## Installatie (handmatig)
   - Installeer [Python](https://www.python.org/downloads/) niet ouder dan `3.11`
   - Activeer een [virtualenv](https://virtualenv.pypa.io/en/latest/how-to/usage.html#activate-a-virtual-environment)
     - macOS/Linux
