@@ -4,7 +4,7 @@
 1. Download zip https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
 2. Extract
 3. Open Windows command prompt
-4. `.\<path to files>\scripts\run.cmd <path to source form file> <path to invullijsten folder>`
+4. `.\<path to files>\scripts\run.cmd <path to source form file>\wk-2026-speelschema.xlsx <path to invullijsten folder>`
 
 ## Installatie (handmatig)
   - Installeer [Python](https://www.python.org/downloads/) niet ouder dan `3.11`
