@@ -39,6 +39,5 @@ echo Update scores
 wkspel update --source_file="%~1"
 
 REM Restore the original directory
-call .\venv_wkspel\Scripts\deactivate
 popd
 pause
