@@ -138,7 +138,7 @@ class UploadUsers(UploadBase):
             "Aantal doelpunten NL": "bonusvraag_goals_nl",
         }
         return (
-            pd.read_excel(file, usecols="F:G", skiprows=6, engine="openpyxl", dtype=str)
+            pd.read_excel(file, usecols="F:G", skiprows=8, engine="openpyxl", dtype=str)
             .dropna(axis=0, how="all")
             .set_index("Bonusvragen")
             .rename(index=key_map)
@@ -183,7 +183,7 @@ class UploadUsers(UploadBase):
             warnings.simplefilter("ignore", UserWarning)
             values = pd.read_excel(
                 file,
-                skiprows=6,
+                skiprows=8,
                 usecols="C:D",
                 engine="openpyxl",
                 dtype=str
