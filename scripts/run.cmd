@@ -11,11 +11,13 @@ if not exist "venv_wkspel\" (
     echo Activating environment and installing wkspel...
     call .\venv_wkspel\Scripts\activate
     python -m pip install pip -U
-    pip install https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
 ) else (
     echo Activating virtual environment...
     call .\venv_wkspel\Scripts\activate
 )
+
+REM Install wheel
+pip install --upgrade https://github.com/r-w-dev/ek_spel/archive/refs/heads/main.zip
 
 REM Set the database connection string using the full path to the current directory
 set "CONNECTION_STRING=sqlite:///%~dp0wkspel2026.db"
