@@ -98,7 +98,6 @@ class User(Base):
 
     __table_args__ = (
         UniqueConstraint(naam, team_naam),
-        UniqueConstraint(topscoorder, bonusvraag_gk, bonusvraag_rk, bonusvraag_goals),
         {"sqlite_autoincrement": True}
     )
 
